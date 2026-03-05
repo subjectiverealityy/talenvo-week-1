@@ -2,8 +2,8 @@
 
 import { useState, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceContext } from "./store/workspaceStore";
-import type { Board } from "./store/workspaceStore";
+import { useWorkspaceContext } from "../store/workspaceStore";
+import type { Board } from "../store/workspaceStore";
 import BoardInputField from "../components/BoardInputField";
 
 type BoardCardProps = {

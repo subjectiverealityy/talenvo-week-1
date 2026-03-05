@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, memo } from "react";
-import type { Card, Column } from "@/app/store/workspaceStore";
+import type { Card, Column } from "@/store/workspaceStore";
 
 type ColumnCardProps = {
   column: Column;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useWorkspaceContext } from "@/app/store/workspaceStore";
+import { useWorkspaceContext } from "@/store/workspaceStore";
 import ColumnCard from "@/components/ColumnCard";
 import ColumnModal from "@/components/ColumnModal";
 
