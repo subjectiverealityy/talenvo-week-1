@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useWorkspaceContext } from "./store/workspaceStore";
-import BoardInputField from "../components/BoardInputField";
+import BoardInputField from "@/components/BoardInputField";
 
 export default function EntryRoute() {
   const { boardsById, boardIds, createBoard } = useWorkspaceContext();
