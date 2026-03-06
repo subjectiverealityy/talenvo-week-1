@@ -171,19 +171,19 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
                 id="card-description"
                 value={draftDescription}
                 onChange={(e) => setDraftDescription(e.target.value)}
-                placeholder="Add a description..."
+                placeholder="you can use *...* for italics or **...** for bold"
                 rows={5}
                 className="block w-full border border-gray-300 p-2 rounded text-sm resize-none"
                 aria-label="Card description"
               />
             ) : (
               <div
-                className="min-h-[80px] border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm break-words"
+                className="min-h-20 border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm wrap-break-word"
                 aria-label="Description preview"
                 dangerouslySetInnerHTML={{
                   __html: description
                     ? parseMarkdown(description)
-                    : "<p class='text-gray-400'>click the 'edit' button to add a description.</p>",
+                    : "<p class='text-gray-400'>click the 'edit' button to add a description</p>",
                 }}
               />
             )}
