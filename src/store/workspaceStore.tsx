@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   ReactNode,
   JSX,
 } from "react";
@@ -35,6 +36,15 @@ export type Card = {
 type VisualState = {
   activeBoardId: string | null;
   activeCardId: string | null;
+};
+
+type PersistedState = {
+  boardsById: Record<string, Board>;
+  boardIds: string[];
+  columnsById: Record<string, Column>;
+  boardColumnMap: Record<string, string[]>;
+  cardsById: Record<string, Card>;
+  columnCardMap: Record<string, string[]>;
 };
 
 // Context type
@@ -71,6 +81,55 @@ type WorkspaceContextType = {
   setActiveCardId: (id: string | null) => void;
 };
 
+// localStorage helpers
+
+const STORAGE_KEY = "workspace";
+
+function restoreDates(state: PersistedState): PersistedState {
+  const boardsById = Object.fromEntries(
+    Object.entries(state.boardsById).map(([id, board]) => [
+      id,
+      { ...board, dateCreated: new Date(board.dateCreated) },
+    ])
+  );
+
+  const cardsById = Object.fromEntries(
+    Object.entries(state.cardsById).map(([id, card]) => [
+      id,
+      { ...card, dueDate: card.dueDate ? new Date(card.dueDate) : null },
+    ])
+  );
+
+  return { ...state, boardsById, cardsById };
+}
+
+function loadFromStorage(): PersistedState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return restoreDates(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(state: PersistedState): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // storage exceeded
+  }
+}
+
+const defaultState: PersistedState = {
+  boardsById: {},
+  boardIds: [],
+  columnsById: {},
+  boardColumnMap: {},
+  cardsById: {},
+  columnCardMap: {},
+};
+
 // Workspace context
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
   undefined
@@ -82,19 +141,34 @@ type WorkspaceProviderProps = { children: ReactNode };
 export const WorkspaceProvider = ({
   children,
 }: WorkspaceProviderProps): JSX.Element => {
-  const [boardsById, setBoardsById] = useState<Record<string, Board>>({});
-  const [boardIds, setBoardIds] = useState<string[]>([]);
-
-  const [columnsById, setColumnsById] = useState<Record<string, Column>>({});
-  const [boardColumnMap, setBoardColumnMap] = useState<Record<string, string[]>>({});
-
-  const [cardsById, setCardsById] = useState<Record<string, Card>>({});
-  const [columnCardMap, setColumnCardMap] = useState<Record<string, string[]>>({});
+  const [boardsById, setBoardsById] = useState<Record<string, Board>>(defaultState.boardsById);
+  const [boardIds, setBoardIds] = useState<string[]>(defaultState.boardIds);
+  const [columnsById, setColumnsById] = useState<Record<string, Column>>(defaultState.columnsById);
+  const [boardColumnMap, setBoardColumnMap] = useState<Record<string, string[]>>(defaultState.boardColumnMap);
+  const [cardsById, setCardsById] = useState<Record<string, Card>>(defaultState.cardsById);
+  const [columnCardMap, setColumnCardMap] = useState<Record<string, string[]>>(defaultState.columnCardMap);
 
   const [visualState, setVisualState] = useState<VisualState>({
     activeBoardId: null,
     activeCardId: null,
   });
+
+  // Load from localStorage after mount
+  useEffect(() => {
+    const saved = loadFromStorage();
+    if (!saved) return;
+    setBoardsById(saved.boardsById);
+    setBoardIds(saved.boardIds);
+    setColumnsById(saved.columnsById);
+    setBoardColumnMap(saved.boardColumnMap);
+    setCardsById(saved.cardsById);
+    setColumnCardMap(saved.columnCardMap);
+  }, []);
+
+  // Save to localStorage
+  useEffect(() => {
+    saveToStorage({ boardsById, boardIds, columnsById, boardColumnMap, cardsById, columnCardMap });
+  }, [boardsById, boardIds, columnsById, boardColumnMap, cardsById, columnCardMap]);
 
   const setActiveCardId = useCallback((id: string | null) => {
     setVisualState((prev) => ({ ...prev, activeCardId: id }));
