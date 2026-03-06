@@ -183,7 +183,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
                 dangerouslySetInnerHTML={{
                   __html: description
                     ? parseMarkdown(description)
-                    : "<p class='text-gray-400'>No description yet.</p>",
+                    : "<p class='text-gray-400'>click the 'edit' button to add a description.</p>",
                 }}
               />
             )}
