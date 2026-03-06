@@ -84,7 +84,7 @@ export default memo(function ColumnCard({
           />
         ) : (
           <h2
-            className="text-sm font-semibold flex-1 min-w-0 break-words cursor-pointer hover:bg-gray-200 rounded px-2 py-0.5"
+            className="text-sm font-semibold flex-1 min-w-0 wrap-break-word cursor-pointer hover:bg-gray-200 rounded px-2 py-0.5"
             onClick={startEditTitle}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

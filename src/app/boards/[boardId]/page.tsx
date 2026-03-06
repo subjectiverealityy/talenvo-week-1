@@ -87,7 +87,7 @@ export default function BoardPage() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex items-center p-6 border-b flex-shrink-0 justify-between">
+      <header className="flex items-center p-6 border-b shrink-0 justify-between">
         <button
           onClick={() => router.push("/")}
           aria-label="Back to dashboard"
@@ -164,7 +164,7 @@ export default function BoardPage() {
         </div>
       </header>
 
-      <div className="px-6 pt-4 flex-shrink-0">
+      <div className="px-6 pt-4 shrink-0">
         <button
           onClick={() => setShowColumnModal(true)}
           aria-label="Add new column"

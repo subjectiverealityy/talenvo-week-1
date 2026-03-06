@@ -46,13 +46,11 @@ type WorkspaceContextType = {
   deleteBoard: (boardId: string) => void;
 
   columnsById: Record<string, Column>;
-  columnIds: string[];
   createColumn: (boardId: string, title: string) => void;
   editColumn: (columnId: string, title: string) => void;
   deleteColumn: (columnId: string) => void;
 
   cardsById: Record<string, Card>;
-  cardIds: string[];
   createCard: (
     columnId: string,
     title: string,
@@ -70,7 +68,6 @@ type WorkspaceContextType = {
   columnCardMap: Record<string, string[]>;
 
   visualState: VisualState;
-  setActiveBoardId: (id: string | null) => void;
   setActiveCardId: (id: string | null) => void;
 };
 
@@ -89,25 +86,15 @@ export const WorkspaceProvider = ({
   const [boardIds, setBoardIds] = useState<string[]>([]);
 
   const [columnsById, setColumnsById] = useState<Record<string, Column>>({});
-  const [columnIds, setColumnIds] = useState<string[]>([]);
-  const [boardColumnMap, setBoardColumnMap] = useState<
-    Record<string, string[]>
-  >({});
+  const [boardColumnMap, setBoardColumnMap] = useState<Record<string, string[]>>({});
 
   const [cardsById, setCardsById] = useState<Record<string, Card>>({});
-  const [cardIds, setCardIds] = useState<string[]>([]);
-  const [columnCardMap, setColumnCardMap] = useState<Record<string, string[]>>(
-    {}
-  );
+  const [columnCardMap, setColumnCardMap] = useState<Record<string, string[]>>({});
 
   const [visualState, setVisualState] = useState<VisualState>({
     activeBoardId: null,
     activeCardId: null,
   });
-
-  const setActiveBoardId = useCallback((id: string | null) => {
-    setVisualState((prev) => ({ ...prev, activeBoardId: id }));
-  }, []);
 
   const setActiveCardId = useCallback((id: string | null) => {
     setVisualState((prev) => ({ ...prev, activeCardId: id }));
@@ -154,7 +141,6 @@ export const WorkspaceProvider = ({
         cardIdsToRemove.forEach((id) => delete next[id]);
         return next;
       });
-      setCardIds((prev) => prev.filter((id) => !cardIdsToRemove.includes(id)));
 
       setColumnCardMap((prev) => {
         const next = { ...prev };
@@ -167,7 +153,6 @@ export const WorkspaceProvider = ({
         colIds.forEach((id) => delete next[id]);
         return next;
       });
-      setColumnIds((prev) => prev.filter((id) => !colIds.includes(id)));
 
       setBoardColumnMap((prev) => {
         const next = { ...prev };
@@ -200,7 +185,6 @@ export const WorkspaceProvider = ({
     };
 
     setColumnsById((prev) => ({ ...prev, [newId]: newColumn }));
-    setColumnIds((prev) => [...prev, newId]);
     setBoardColumnMap((prev) => ({
       ...prev,
       [boardId]: [...(prev[boardId] ?? []), newId],
@@ -233,7 +217,6 @@ export const WorkspaceProvider = ({
         cardIdsToRemove.forEach((id) => delete next[id]);
         return next;
       });
-      setCardIds((prev) => prev.filter((id) => !cardIdsToRemove.includes(id)));
 
       setColumnCardMap((prev) => {
         const next = { ...prev };
@@ -255,8 +238,6 @@ export const WorkspaceProvider = ({
 
         return next;
       });
-
-      setColumnIds((prev) => prev.filter((id) => id !== columnId));
     },
     [columnCardMap]
   );
@@ -286,7 +267,6 @@ export const WorkspaceProvider = ({
       };
 
       setCardsById((prev) => ({ ...prev, [newId]: newCard }));
-      setCardIds((prev) => [...prev, newId]);
       setColumnCardMap((prev) => ({
         ...prev,
         [columnId]: [...(prev[columnId] ?? []), newId],
@@ -323,8 +303,6 @@ export const WorkspaceProvider = ({
 
       return next;
     });
-
-    setCardIds((prev) => prev.filter((id) => id !== cardId));
   }, []);
 
   return (
@@ -336,19 +314,16 @@ export const WorkspaceProvider = ({
         editBoard,
         deleteBoard,
         columnsById,
-        columnIds,
         createColumn,
         editColumn,
         deleteColumn,
         cardsById,
-        cardIds,
         createCard,
         editCard,
         deleteCard,
         columnCardMap,
         boardColumnMap,
         visualState,
-        setActiveBoardId,
         setActiveCardId,
       }}
     >

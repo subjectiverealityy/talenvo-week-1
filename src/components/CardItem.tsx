@@ -35,7 +35,7 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
         }}
       >
         <div className="flex items-start justify-between gap-2">
-          <span className="text-sm font-medium min-w-0 break-words">{card.title}</span>
+          <span className="text-sm font-medium min-w-0 wrap-break-word">{card.title}</span>
           <button
             onClick={handleDelete}
             aria-label={`Delete card: ${card.title}`}
@@ -47,7 +47,7 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
 
         {card.description && (
           <div
-            className="text-xs text-gray-500 mt-1 line-clamp-2 prose prose-xs break-words"
+            className="text-xs text-gray-500 mt-1 line-clamp-2 prose prose-xs wrap-break-word"
             aria-label="Card description"
             dangerouslySetInnerHTML={{ __html: parseMarkdown(card.description) }}
           />
