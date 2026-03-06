@@ -61,7 +61,7 @@ export default memo(function ColumnCard({
 
   return (
     <section
-      className="bg-gray-100 rounded-lg p-4 w-64 min-w-[16rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto"
+      className="bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[16rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto"
       aria-label={`Column: ${column.title}`}
     >
       <header className="flex items-center justify-between gap-2">
