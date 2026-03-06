@@ -168,7 +168,7 @@ export default function BoardPage() {
         <button
           onClick={() => setShowColumnModal(true)}
           aria-label="Add new column"
-          className="bg-gray-800 text-white px-4 py-2 rounded text-sm hover:bg-gray-700 whitespace-nowrap"
+          className="bg-gray-800 text-white px-4 py-2 rounded text-sm whitespace-nowrap cursor-pointer"
         >
           + Add a Column
         </button>

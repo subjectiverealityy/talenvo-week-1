@@ -8,6 +8,7 @@ import {
   KeyboardEvent,
 } from "react";
 import type { Card } from "@/store/workspaceStore";
+import { parseMarkdown } from "@/lib/parseMarkdown";
 
 type CardModalProps = {
   card: Card;
@@ -18,6 +19,8 @@ type CardModalProps = {
 export default function CardModal({ card, onClose, onSave }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
+  const [draftDescription, setDraftDescription] = useState(card.description);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tagsInput, setTagsInput] = useState(card.tags.join(", "));
   const [dueDate, setDueDate] = useState(
     card.dueDate
@@ -28,6 +31,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement;
@@ -42,6 +46,12 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
+
+  useEffect(() => {
+    if (isEditingDescription) {
+      setTimeout(() => textareaRef.current?.focus(), 0);
+    }
+  }, [isEditingDescription]);
 
   function trapFocus(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key !== "Tab" || !overlayRef.current) return;
@@ -63,6 +73,16 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     }
   }
 
+  function handleDescriptionEdit() {
+    setDraftDescription(description);
+    setIsEditingDescription(true);
+  }
+
+  function handleDescriptionSave() {
+    setDescription(draftDescription);
+    setIsEditingDescription(false);
+  }
+
   const handleSave = useCallback(() => {
     if (!title.trim()) {
       setTitleError("Title is required.");
@@ -81,10 +101,6 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     });
   }, [title, description, tagsInput, dueDate, onSave]);
 
-  function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === overlayRef.current) onClose();
-  }
-
   return (
     <div
       ref={overlayRef}
@@ -92,7 +108,6 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="card-modal-title"
-      onClick={handleOverlayClick}
       onKeyDown={trapFocus}
     >
       <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl flex flex-col">
@@ -139,17 +154,39 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           </div>
 
           <div>
-            <label htmlFor="card-description" className="text-sm font-medium block mb-1">
-              Description
-            </label>
-            <textarea
-              id="card-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Add a description..."
-              rows={5}
-              className="block w-full border border-gray-300 p-2 rounded text-sm resize-none"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-sm font-medium">Description</label>
+              <button
+                onClick={isEditingDescription ? handleDescriptionSave : handleDescriptionEdit}
+                aria-label={isEditingDescription ? "Save description" : "Edit description"}
+                className="text-xs text-gray-500 hover:text-gray-800 border border-gray-300 rounded px-2 py-0.5"
+              >
+                {isEditingDescription ? "Save" : "Edit"}
+              </button>
+            </div>
+
+            {isEditingDescription ? (
+              <textarea
+                ref={textareaRef}
+                id="card-description"
+                value={draftDescription}
+                onChange={(e) => setDraftDescription(e.target.value)}
+                placeholder="Add a description..."
+                rows={5}
+                className="block w-full border border-gray-300 p-2 rounded text-sm resize-none"
+                aria-label="Card description"
+              />
+            ) : (
+              <div
+                className="min-h-[80px] border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm break-words"
+                aria-label="Description preview"
+                dangerouslySetInnerHTML={{
+                  __html: description
+                    ? parseMarkdown(description)
+                    : "<p class='text-gray-400'>No description yet.</p>",
+                }}
+              />
+            )}
           </div>
 
           <div>
@@ -178,7 +215,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
               className="block w-full border border-gray-300 p-2 rounded text-sm"
             />
             <p className="text-xs text-gray-400 mt-1">
-              By clicking on the calendar icon, you can set a due date or remove a due date by clicking 'clear'.
+              By clicking on the calendar, you can select a due date, or remove a due date by clicking 'Clear'.
             </p>
           </div>
         </div>

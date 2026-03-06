@@ -71,7 +71,7 @@ export default function EntryRoute() {
           placeholder="Give your new board a description"
         />
         <button
-          className="bg-gray-200 border px-4 py-2 rounded mb-4"
+          className="bg-gray-200 border px-4 py-2 rounded mb-4 cursor-pointer"
           onClick={handleCreateBoard}
           aria-label="Create new board"
         >
