@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, memo } from "react";
 import type { Card, Column } from "@/store/workspaceStore";
+import CardItem from "@/components/CardItem";
 
 type ColumnCardProps = {
   column: Column;
@@ -9,23 +10,33 @@ type ColumnCardProps = {
   cardsById: Record<string, Card>;
   onEditColumn: (columnId: string, title: string) => void;
   onDeleteColumn: (columnId: string) => void;
+  onCreateCard: (columnId: string, title: string) => void;
+  onOpenCard: (cardId: string) => void;
+  onDeleteCard: (cardId: string) => void;
 };
 
-const ColumnCard = memo(function ColumnCard({
+export default memo(function ColumnCard({
   column,
   cardIds,
   cardsById,
   onEditColumn,
   onDeleteColumn,
+  onCreateCard,
+  onOpenCard,
+  onDeleteCard,
 }: ColumnCardProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
+  const [addingCard, setAddingCard] = useState(false);
+  const [newCardTitle, setNewCardTitle] = useState("");
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const cardInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSaveTitle = useCallback(() => {
+  const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
       onEditColumn(column.id, editTitle);
     } else {
+      // Revert to original title if input is empty
       setEditTitle(column.title);
     }
     setIsEditingTitle(false);
@@ -35,6 +46,18 @@ const ColumnCard = memo(function ColumnCard({
     setIsEditingTitle(true);
     setTimeout(() => titleInputRef.current?.focus(), 0);
   }
+
+  function startAddCard() {
+    setAddingCard(true);
+    setTimeout(() => cardInputRef.current?.focus(), 0);
+  }
+
+  const handleAddCard = useCallback(() => {
+    if (!newCardTitle.trim()) return;
+    onCreateCard(column.id, newCardTitle);
+    setNewCardTitle("");
+    setAddingCard(false);
+  }, [newCardTitle, column.id, onCreateCard]);
 
   return (
     <section
@@ -48,9 +71,9 @@ const ColumnCard = memo(function ColumnCard({
             type="text"
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleSaveTitle}
+            onBlur={handleTitleSave}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleSaveTitle();
+              if (e.key === "Enter") handleTitleSave();
               if (e.key === "Escape") {
                 setEditTitle(column.title);
                 setIsEditingTitle(false);
@@ -61,7 +84,7 @@ const ColumnCard = memo(function ColumnCard({
           />
         ) : (
           <h2
-            className="text-sm font-semibold flex-1 cursor-pointer hover:bg-gray-200 rounded px-2 py-0.5"
+            className="text-sm font-semibold flex-1 min-w-0 break-words cursor-pointer hover:bg-gray-200 rounded px-2 py-0.5"
             onClick={startEditTitle}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
@@ -90,21 +113,64 @@ const ColumnCard = memo(function ColumnCard({
           const card = cardsById[cardId];
           if (!card) return null;
           return (
-            <li key={cardId} className="bg-white border border-gray-200 rounded p-2 text-sm">
-              {card.title}
-            </li>
+            <CardItem
+              key={cardId}
+              card={card}
+              onOpen={onOpenCard}
+              onDelete={onDeleteCard}
+            />
           );
         })}
       </ul>
 
-      <button
-        className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors"
-        aria-label={`Add a card to ${column.title}`}
-      >
-        + Add a Card
-      </button>
+      {addingCard ? (
+        <div className="flex flex-col gap-2">
+          <label htmlFor={`new-card-${column.id}`} className="sr-only">
+            Card title
+          </label>
+          <input
+            ref={cardInputRef}
+            id={`new-card-${column.id}`}
+            type="text"
+            value={newCardTitle}
+            onChange={(e) => setNewCardTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAddCard();
+              if (e.key === "Escape") {
+                setAddingCard(false);
+                setNewCardTitle("");
+              }
+            }}
+            placeholder="Card title"
+            className="block w-full border border-gray-300 p-2 rounded text-sm bg-white"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddCard}
+              className="bg-gray-800 text-white px-3 py-1.5 rounded text-xs"
+            >
+              Add
+            </button>
+            <button
+              onClick={() => {
+                setAddingCard(false);
+                setNewCardTitle("");
+              }}
+              className="text-gray-500 hover:text-gray-800 px-3 py-1.5 rounded text-xs border border-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={startAddCard}
+          className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors"
+          aria-label={`Add a card to ${column.title}`}
+        >
+          + Add a Card
+        </button>
+      )}
     </section>
   );
 });
-
-export default ColumnCard;

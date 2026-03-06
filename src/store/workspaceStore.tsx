@@ -42,6 +42,7 @@ type WorkspaceContextType = {
   boardsById: Record<string, Board>;
   boardIds: string[];
   createBoard: (title: string, description?: string) => void;
+  editBoard: (boardId: string, updates: Partial<Pick<Board, "title" | "description">>) => void;
   deleteBoard: (boardId: string) => void;
 
   columnsById: Record<string, Column>;
@@ -129,6 +130,16 @@ export const WorkspaceProvider = ({
       setBoardsById((prev) => ({ ...prev, [newId]: newBoard }));
       setBoardIds((prev) => [...prev, newId]);
       setBoardColumnMap((prev) => ({ ...prev, [newId]: [] }));
+    },
+    []
+  );
+
+  const editBoard = useCallback(
+    (boardId: string, updates: Partial<Pick<Board, "title" | "description">>): void => {
+      setBoardsById((prev) => {
+        if (!prev[boardId]) return prev;
+        return { ...prev, [boardId]: { ...prev[boardId], ...updates } };
+      });
     },
     []
   );
@@ -322,6 +333,7 @@ export const WorkspaceProvider = ({
         boardsById,
         boardIds,
         createBoard,
+        editBoard,
         deleteBoard,
         columnsById,
         columnIds,
