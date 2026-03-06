@@ -71,13 +71,13 @@ export default function ColumnModal({ onClose, onAdd }: ColumnModalProps) {
     >
       <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
         <h2 id="add-column-modal-title" className="text-base font-semibold mb-4">
-          New Column
+          Add a Column
         </h2>
 
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-1">
             <label htmlFor="column-name-input" className="text-sm font-medium">
-              Column name
+              Column Title
             </label>
             {error && (
               <span id="column-name-error" role="alert" className="text-red-500 text-xs">
@@ -97,7 +97,7 @@ export default function ColumnModal({ onClose, onAdd }: ColumnModalProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleAdd();
             }}
-            placeholder="e.g. In Progress"
+            placeholder="e.g. Tasks, Ideas, Sprint, To-Do"
             aria-describedby={error ? "column-name-error" : undefined}
             aria-invalid={!!error}
             className={`block w-full border p-2 rounded text-sm ${
