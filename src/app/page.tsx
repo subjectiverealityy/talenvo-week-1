@@ -41,7 +41,7 @@ export default function EntryRoute() {
   );
 
   return (
-    <main className="p-16">
+    <main className="p-16 max-w-xl mx-auto">
       <header className="mb-8">
         <h1 className="text-2xl font-bold mb-1">Welcome to your BoardList</h1>
         <p className="text-sm text-gray-500">
@@ -51,7 +51,7 @@ export default function EntryRoute() {
         </p>
       </header>
 
-      <section aria-label="Create a new board" className="mb-8">
+      <section aria-label="Create a new board" className="mb-8 max-xl">
         <BoardInputField
           id="board-title"
           label="Board title"
