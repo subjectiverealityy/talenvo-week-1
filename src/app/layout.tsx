@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { WorkspaceProvider } from "@/store/workspaceStore";
+import { WorkspaceProvider } from "@/store/store";
 
 export const metadata: Metadata = {
   title: "BoardList - Talenvo Project (Week 1)",

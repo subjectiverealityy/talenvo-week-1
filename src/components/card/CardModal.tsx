@@ -7,8 +7,8 @@ import {
   useCallback,
   KeyboardEvent,
 } from "react";
-import type { Card } from "@/store/workspaceStore";
-import { parseMarkdown } from "@/lib/parseMarkdown";
+import type { Card } from "@/store/store";
+import { parseMarkdown } from "@/lib/markdown";
 
 type CardModalProps = {
   card: Card;

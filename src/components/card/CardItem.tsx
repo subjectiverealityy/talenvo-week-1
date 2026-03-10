@@ -1,8 +1,8 @@
 "use client";
 
 import { memo } from "react";
-import type { Card } from "@/store/workspaceStore";
-import { parseMarkdown } from "@/lib/parseMarkdown";
+import type { Card } from "@/store/store";
+import { parseMarkdown } from "@/lib/markdown";
 
 type CardItemProps = {
   card: Card;

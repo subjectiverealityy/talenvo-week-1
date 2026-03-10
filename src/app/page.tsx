@@ -2,9 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceContext } from "@/store/workspaceStore";
-import BoardInputField from "@/components/BoardInputField";
-import BoardCard from "@/components/BoardCard";
+import { useWorkspaceContext } from "@/store/store";
+import BoardInputField from "@/components/board/BoardInputField";
+import BoardCard from "@/components/board/BoardCard";
 
 export default function EntryRoute() {
   const router = useRouter();

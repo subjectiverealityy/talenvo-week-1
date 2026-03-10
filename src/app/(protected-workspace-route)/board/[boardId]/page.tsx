@@ -2,10 +2,10 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useWorkspaceContext } from "@/store/workspaceStore";
-import ColumnCard from "@/components/ColumnCard";
-import ColumnModal from "@/components/ColumnModal";
-import CardModal from "@/components/CardModal";
+import { useWorkspaceContext } from "@/store/store";
+import ColumnCard from "@/components/column/ColumnCard";
+import ColumnModal from "@/components/column/ColumnModal";
+import CardModal from "@/components/card/CardModal";
 
 export default function BoardPage() {
   const params = useParams();

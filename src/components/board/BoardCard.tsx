@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { Board } from "@/store/workspaceStore";
+import type { Board } from "@/store/store";
 
 type BoardCardProps = {
   board: Board;
