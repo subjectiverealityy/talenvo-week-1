@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import type { Board, Column, Card } from "@/types";
-import type { VisualState, ContextValue } from "@/store/types";
+import type { VisualState } from "@/store/types";
 import { defaultState, loadFromStorage, saveToStorage } from "@/store/data-persistence";
 import { useBoardActions } from "@/store/boardStore";
 import { useColumnActions } from "@/store/columnStore";
