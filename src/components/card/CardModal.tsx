@@ -7,7 +7,7 @@ import {
   useCallback,
   KeyboardEvent,
 } from "react";
-import type { Card } from "@/store/store";
+import type { Card } from "@/types";
 import { parseMarkdown } from "@/lib/markdown";
 
 type CardModalProps = {
@@ -90,8 +90,8 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     }
     const parsedTags = tagsInput
       .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
+      .map((t: string) => t.trim())
+      .filter(tag => tag.length > 0);
 
     onSave({
       title: title.trim(),

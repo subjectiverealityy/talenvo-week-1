@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useWorkspaceContext } from "@/store/store";
+import { useStore } from "@/store/store";
 import ColumnCard from "@/components/column/ColumnCard";
 import ColumnModal from "@/components/column/ColumnModal";
 import CardModal from "@/components/card/CardModal";
@@ -27,7 +27,7 @@ export default function BoardPage() {
     deleteCard,
     visualState,
     setActiveCardId,
-  } = useWorkspaceContext();
+  } = useStore();
 
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);

@@ -2,14 +2,14 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useWorkspaceContext } from "@/store/store";
+import { useStore } from "@/store/store";
 import BoardInputField from "@/components/board/BoardInputField";
 import BoardCard from "@/components/board/BoardCard";
 
 export default function EntryRoute() {
   const router = useRouter();
   const { boardsById, boardIds, createBoard, deleteBoard } =
-    useWorkspaceContext();
+    useStore();
 
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");

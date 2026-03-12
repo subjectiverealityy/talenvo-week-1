@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { WorkspaceProvider } from "@/store/store";
+import { StoreProvider } from "@/store/store";
 
 export const metadata: Metadata = {
   title: "BoardList - Talenvo Project (Week 1)",
@@ -11,9 +11,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <WorkspaceProvider>
+        <StoreProvider>
           {children}
-        </WorkspaceProvider>
+        </StoreProvider>
       </body>
     </html>
   );
