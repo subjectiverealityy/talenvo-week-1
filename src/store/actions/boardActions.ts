@@ -10,15 +10,17 @@ export function createBoard(
   state: PersistedState,
   payload: { title: string; description: string }
 ): Partial<PersistedState> {
-  if (!payload.title.trim()) return {}; // returning an empty object early if the title is empty or only contains whitespace tells Zustand that there is no state update to apply.
+  const trimmedTitle = payload.title.trim();
+  const trimmedDescription = payload.description.trim();  
+  if (!trimmedTitle) return {}; // returning an empty object early if the title is empty or only contains whitespace tells Zustand that there is no state update to apply.
 
   const newId = crypto.randomUUID();
 
   // Newly created board object
   const createdBoard: Board = {
     id: newId,
-    title: payload.title.trim(),
-    description: payload.description.trim(),
+    title: trimmedTitle,
+    description: trimmedDescription,
     dateCreated: new Date(),
   };
 
@@ -37,7 +39,8 @@ export function editBoard(
 
   return {
     boardsById: {
-      ...state.boardsById, [payload.boardId]: { // Overwrite the entry at payload.boardId with a new object
+      ...state.boardsById, 
+      [payload.boardId]: { // Overwrite the entry at payload.boardId with a new object
         ...state.boardsById[payload.boardId], // First spread copies all existing fields of the board being edited.
         ...payload.updates, // Second spread overwrites only the fields present in updates.
       },
@@ -45,7 +48,7 @@ export function editBoard(
   };
 }
 
-// When a board is deleted, its cards, columns and all maps are also deleted to prevent orphaned entities. This function handles that cascade deletion by first identifying all columns linked to the board, then all cards linked to those columns, and finally removing them from their respective state slices.
+// When a board is deleted, its cards, columns and all maps are also deleted to prevent orphaned entities. This function handles that cascade deletion by first identifying all columns linked to the board, then all cards linked to those columns, and finally removing them from their respective maps and lookup objects..
 export function deleteBoard(
   state: PersistedState,
   payload: { boardId: string }

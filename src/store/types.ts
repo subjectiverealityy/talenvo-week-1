@@ -33,6 +33,6 @@ export type Action =
   | { type: "CREATE_CARD"; payload: { columnId: string; title: string; description?: string; tags?: string[]; dueDate?: Date | null } }
   | { type: "EDIT_CARD"; payload: { cardId: string; updates: Partial<Omit<Card, "id" | "columnId">> } }
   | { type: "DELETE_CARD"; payload: { cardId: string } }
-  | { type: "MOVE_CARD"; payload: { cardId: string; fromColumnId: string; toColumnId: string; newIndex: number } }
+  | { type: "MOVE_CARD"; payload: { cardId: string; sourceColumnId: string; destinationColumnId: string; newIndex: number } }
   | { type: "UNDO" }
   | { type: "REDO" };

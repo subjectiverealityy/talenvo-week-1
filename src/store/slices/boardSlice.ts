@@ -1,7 +1,6 @@
 // Board Slice - connects the pure board action functions to Zustand.
 // This is a wiring layer that routes Zustand's 'set' and 'get' to the pure action functions in boardActions.ts.
-// createBoardSlice returns an object with three methods: createBoard, editBoard, deleteBoard.
-// Each method calls set with the result of its corresponding action function, then passes get() as the state argument.
+// createBoardSlice returns an object with three methods: createBoard, editBoard, deleteBoard. Each method calls set() with the result of its corresponding action function, then passes get() as the state argument.
 
 import type { PersistedState } from "@/store/types";
 import type { Board } from "@/types";
