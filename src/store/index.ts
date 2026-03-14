@@ -1,7 +1,4 @@
-// Barrel file for /store - re-exports store types and hooks so consumers can import from a single entry point.
+// Barrel file for /store - re-exports store types and hooks so consumers can import from a single entry point (@/store).
 
-// If you create hooks like useColumnStore or useCardStore, you can re-export them here
-// i.e export * from "./useBoardStore";
-
-export * from "./types";
-export { StoreProvider, useStore } from "./store";
+export { useStore } from "@/store/store";
+export type { PersistedState, VisualState, Action } from "@/store/types";
