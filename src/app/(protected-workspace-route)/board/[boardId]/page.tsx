@@ -38,7 +38,7 @@ export default function BoardPage() {
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
   const board = boardsById[boardId];
-  const { activeCardId } = useStore((state) => ({ activeCardId: state.activeCardId }));
+  const activeCardId = useStore((state) => state.activeCardId);
   const activeCard = activeCardId ? cardsById[activeCardId] : null;
 
   const handleTitleSave = useCallback(() => {
