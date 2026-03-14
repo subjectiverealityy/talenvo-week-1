@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useCallback, useRef, memo } from "react";
-import type { Card, Column } from "@/store/store";
+import type { Card, Column } from "@/types";
 import CardItem from "@/components/card/CardItem";
 
 type ColumnCardProps = {
   column: Column;
   cardIds: string[];
   cardsById: Record<string, Card>;
-  onEditColumn: (columnId: string, title: string) => void;
-  onDeleteColumn: (columnId: string) => void;
-  onCreateCard: (columnId: string, title: string) => void;
+  onEditColumn: (payload: { columnId: string; title: string }) => void;
+  onDeleteColumn: (payload: { columnId: string }) => void;
+  onCreateCard: (payload: { columnId: string; title: string }) => void;
   onOpenCard: (cardId: string) => void;
-  onDeleteCard: (cardId: string) => void;
+  onDeleteCard: (payload: { cardId: string }) => void;
 };
 
 export default memo(function ColumnCard({
@@ -34,7 +34,7 @@ export default memo(function ColumnCard({
 
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
-      onEditColumn(column.id, editTitle);
+      onEditColumn({ columnId: column.id, title: editTitle });
     } else {
       // Revert to original title if input is empty
       setEditTitle(column.title);
@@ -54,7 +54,7 @@ export default memo(function ColumnCard({
 
   const handleAddCard = useCallback(() => {
     if (!newCardTitle.trim()) return;
-    onCreateCard(column.id, newCardTitle);
+    onCreateCard({ columnId: column.id, title: newCardTitle });
     setNewCardTitle("");
     setAddingCard(false);
   }, [newCardTitle, column.id, onCreateCard]);
@@ -100,7 +100,7 @@ export default memo(function ColumnCard({
           </h2>
         )}
         <button
-          onClick={() => onDeleteColumn(column.id)}
+          onClick={() => onDeleteColumn({ columnId: column.id })}
           aria-label={`Delete column: ${column.title}`}
           className="text-gray-400 hover:text-red-500 text-xs px-1 shrink-0"
         >

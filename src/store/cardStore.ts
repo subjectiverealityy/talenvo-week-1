@@ -11,49 +11,58 @@ export function useCardActions(deps: Deps) {
   const { columnsById, setCardsById, setColumnCardMap } = deps;
 
   const createCard = useCallback(
-    (columnId: string, title: string, description = "", tags: string[] = [], dueDate: Date | null = null): void => {
-      const trimmedTitle = title.trim();
-      if (!trimmedTitle || !columnsById[columnId]) return;
+    (payload: {
+      columnId: string;
+      title: string;
+      description?: string;
+      tags?: string[];
+      dueDate?: Date | null;
+    }): void => {
+      const trimmedTitle = payload.title.trim();
+      if (!trimmedTitle || !columnsById[payload.columnId]) return;
 
       const newId = crypto.randomUUID();
       const newCard: Card = {
         id: newId,
         title: trimmedTitle,
-        columnId,
-        description,
-        tags,
-        dueDate,
+        columnId: payload.columnId,
+        description: payload.description ?? "",
+        tags: payload.tags ?? [],
+        dueDate: payload.dueDate ?? null,
       };
 
       setCardsById((prev) => ({ ...prev, [newId]: newCard }));
       setColumnCardMap((prev) => ({
         ...prev,
-        [columnId]: [...(prev[columnId] ?? []), newId],
+        [payload.columnId]: [...(prev[payload.columnId] ?? []), newId],
       }));
     },
     [columnsById, setCardsById, setColumnCardMap]
   );
 
   const editCard = useCallback(
-    (cardId: string, updates: Partial<Omit<Card, "id" | "columnId">>): void => {
+    (payload: { cardId: string; updates: Partial<Omit<Card, "id" | "columnId">> }): void => {
       setCardsById((prev) => {
-        if (!prev[cardId]) return prev;
-        return { ...prev, [cardId]: { ...prev[cardId], ...updates } };
+        if (!prev[payload.cardId]) return prev;
+        return {
+          ...prev,
+          [payload.cardId]: { ...prev[payload.cardId], ...payload.updates },
+        };
       });
     },
     [setCardsById]
   );
 
-  const deleteCard = useCallback((cardId: string): void => {
+  const deleteCard = useCallback((payload: { cardId: string }): void => {
     setCardsById((prev) => {
-      const columnId = prev[cardId]?.columnId;
+      const columnId = prev[payload.cardId]?.columnId;
       const next = { ...prev };
-      delete next[cardId];
+      delete next[payload.cardId];
 
       if (columnId) {
         setColumnCardMap((prevMap) => ({
           ...prevMap,
-          [columnId]: prevMap[columnId].filter((id) => id !== cardId),
+          [columnId]: prevMap[columnId].filter((id) => id !== payload.cardId),
         }));
       }
 

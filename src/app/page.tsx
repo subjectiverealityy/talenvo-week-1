@@ -16,15 +16,15 @@ export default function EntryRoute() {
   const [titleError, setTitleError] = useState("");
 
   const handleCreateBoard = useCallback(() => {
-    if (!newTitle.trim()) {
-      setTitleError("Oops! You can't create a board without a title.");
-      return;
-    }
-    createBoard(newTitle, newDescription);
-    setNewTitle("");
-    setNewDescription("");
-    setTitleError("");
-  }, [newTitle, newDescription, createBoard]);
+  if (!newTitle.trim()) {
+    setTitleError("Oops! You can't create a board without a title.");
+    return;
+  }
+  createBoard({ title: newTitle, description: newDescription });
+  setNewTitle("");
+  setNewDescription("");
+  setTitleError("");
+}, [newTitle, newDescription, createBoard]);
 
   const handleOpenBoard = useCallback(
     (id: string) => {
@@ -35,7 +35,7 @@ export default function EntryRoute() {
 
   const handleDeleteBoard = useCallback(
     (id: string) => {
-      deleteBoard(id);
+      deleteBoard({ boardId: id });
     },
     [deleteBoard]
   );

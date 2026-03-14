@@ -25,7 +25,6 @@ export default function BoardPage() {
     createCard,
     editCard,
     deleteCard,
-    visualState,
     setActiveCardId,
   } = useStore();
 
@@ -39,17 +38,18 @@ export default function BoardPage() {
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
   const board = boardsById[boardId];
-  const activeCard = visualState.activeCardId ? cardsById[visualState.activeCardId] : null;
+  const { activeCardId } = useStore((state) => ({ activeCardId: state.activeCardId }));
+  const activeCard = activeCardId ? cardsById[activeCardId] : null;
 
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
-      editBoard(boardId, { title: editTitle.trim() });
+      editBoard({ boardId, updates: { title: editTitle.trim() } });
     }
     setIsEditingTitle(false);
   }, [editTitle, boardId, editBoard]);
 
   const handleDescriptionSave = useCallback(() => {
-    editBoard(boardId, { description: editDescription.trim() });
+    editBoard({ boardId, updates: { description: editDescription.trim() } });
     setIsEditingDescription(false);
   }, [editDescription, boardId, editBoard]);
 
@@ -208,7 +208,7 @@ export default function BoardPage() {
       {showColumnModal && (
         <ColumnModal
           onClose={() => setShowColumnModal(false)}
-          onAdd={(title) => createColumn(boardId, title)}
+          onAdd={(title) => createColumn({ boardId, title })}
         />
       )}
 
@@ -217,7 +217,7 @@ export default function BoardPage() {
           card={activeCard}
           onClose={() => setActiveCardId(null)}
           onSave={(updates) => {
-            editCard(activeCard.id, updates);
+            editCard({ cardId: activeCard.id, updates });
             setActiveCardId(null);
           }}
         />

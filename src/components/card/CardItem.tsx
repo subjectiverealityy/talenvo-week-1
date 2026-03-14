@@ -7,7 +7,7 @@ import { parseMarkdown } from "@/lib/markdown";
 type CardItemProps = {
   card: Card;
   onOpen: (cardId: string) => void;
-  onDelete: (cardId: string) => void;
+  onDelete: (payload: { cardId: string }) => void;
 };
 
 const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProps) {
@@ -16,7 +16,7 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
-    onDelete(card.id);
+    onDelete({ cardId: card.id });
   }
 
   return (

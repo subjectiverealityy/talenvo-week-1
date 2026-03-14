@@ -21,17 +21,21 @@ export function useColumnActions(deps: Deps) {
   } = deps;
 
   const createColumn = useCallback(
-    (boardId: string, title: string): void => {
-      const trimmedTitle = title.trim();
-      if (!trimmedTitle || !boardsById[boardId]) return;
+    (payload: { boardId: string; title: string }): void => {
+      const trimmedTitle = payload.title.trim();
+      if (!trimmedTitle || !boardsById[payload.boardId]) return;
 
       const newId = crypto.randomUUID();
-      const newColumn: Column = { id: newId, title: trimmedTitle, boardId };
+      const newColumn: Column = {
+        id: newId,
+        title: trimmedTitle,
+        boardId: payload.boardId,
+      };
 
       setColumnsById((prev) => ({ ...prev, [newId]: newColumn }));
       setBoardColumnMap((prev) => ({
         ...prev,
-        [boardId]: [...(prev[boardId] ?? []), newId],
+        [payload.boardId]: [...(prev[payload.boardId] ?? []), newId],
       }));
       setColumnCardMap((prev) => ({ ...prev, [newId]: [] }));
     },
@@ -39,21 +43,24 @@ export function useColumnActions(deps: Deps) {
   );
 
   const editColumn = useCallback(
-    (columnId: string, title: string): void => {
-      const trimmedTitle = title.trim();
+    (payload: { columnId: string; title: string }): void => {
+      const trimmedTitle = payload.title.trim();
       if (!trimmedTitle) return;
 
       setColumnsById((prev) => {
-        if (!prev[columnId]) return prev;
-        return { ...prev, [columnId]: { ...prev[columnId], title: trimmedTitle } };
+        if (!prev[payload.columnId]) return prev;
+        return {
+          ...prev,
+          [payload.columnId]: { ...prev[payload.columnId], title: trimmedTitle },
+        };
       });
     },
     [setColumnsById]
   );
 
   const deleteColumn = useCallback(
-    (columnId: string): void => {
-      const cardIdsToRemove = columnCardMap[columnId] ?? [];
+    (payload: { columnId: string }): void => {
+      const cardIdsToRemove = columnCardMap[payload.columnId] ?? [];
 
       setCardsById((prev) => {
         const next = { ...prev };
@@ -63,14 +70,14 @@ export function useColumnActions(deps: Deps) {
 
       setColumnCardMap((prev) => {
         const next = { ...prev };
-        delete next[columnId];
+        delete next[payload.columnId];
         return next;
       });
 
       setColumnsById((prev) => {
-        const boardId = prev[columnId]?.boardId;
+        const boardId = prev[payload.columnId]?.boardId;
         const next = { ...prev };
-        delete next[columnId];
+        delete next[payload.columnId];
 
         if (boardId) {
           setBoardColumnMap((prevMap) => ({

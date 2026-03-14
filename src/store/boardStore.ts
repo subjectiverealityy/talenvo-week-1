@@ -32,15 +32,15 @@ export function useBoardActions(deps: Deps) {
   } = deps;
 
   const createBoard = useCallback(
-    (title: string, description: string = ""): void => {
-      const trimmedTitle = title.trim();
+    (payload: { title: string; description: string }): void => {
+      const trimmedTitle = payload.title.trim();
       if (!trimmedTitle) return;
 
       const newId = crypto.randomUUID();
       const newBoard: Board = {
         id: newId,
         title: trimmedTitle,
-        description: description.trim(),
+        description: payload.description.trim(),
         dateCreated: new Date(),
       };
 
@@ -52,18 +52,21 @@ export function useBoardActions(deps: Deps) {
   );
 
   const editBoard = useCallback(
-    (boardId: string, updates: Partial<Pick<Board, "title" | "description">>): void => {
+    (payload: { boardId: string; updates: Partial<Pick<Board, "title" | "description">> }): void => {
       setBoardsById((prev) => {
-        if (!prev[boardId]) return prev;
-        return { ...prev, [boardId]: { ...prev[boardId], ...updates } };
+        if (!prev[payload.boardId]) return prev;
+        return {
+          ...prev,
+          [payload.boardId]: { ...prev[payload.boardId], ...payload.updates },
+        };
       });
     },
     [setBoardsById]
   );
 
   const deleteBoard = useCallback(
-    (boardId: string): void => {
-      const colIds = boardColumnMap[boardId] ?? [];
+    (payload: { boardId: string }): void => {
+      const colIds = boardColumnMap[payload.boardId] ?? [];
       const cardIdsToRemove = colIds.flatMap((cId) => columnCardMap[cId] ?? []);
 
       setCardsById((prev) => {
@@ -86,17 +89,17 @@ export function useBoardActions(deps: Deps) {
 
       setBoardColumnMap((prev) => {
         const next = { ...prev };
-        delete next[boardId];
+        delete next[payload.boardId];
         return next;
       });
 
       setBoardsById((prev) => {
         const next = { ...prev };
-        delete next[boardId];
+        delete next[payload.boardId];
         return next;
       });
 
-      setBoardIds((prev) => prev.filter((id) => id !== boardId));
+      setBoardIds((prev) => prev.filter((id) => id !== payload.boardId));
     },
     [boardColumnMap, columnCardMap, setBoardsById, setBoardIds, setBoardColumnMap, setColumnsById, setCardsById, setColumnCardMap]
   );
