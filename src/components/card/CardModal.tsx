@@ -16,6 +16,13 @@ type CardModalProps = {
   onSave: (updates: Partial<Omit<Card, "id" | "columnId">>) => void;
 };
 
+function formatDateInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function CardModal({ card, onClose, onSave }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [description, setDescription] = useState(card.description);
@@ -23,9 +30,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [tagsInput, setTagsInput] = useState(card.tags.join(", "));
   const [dueDate, setDueDate] = useState(
-    card.dueDate
-      ? new Date(card.dueDate).toISOString().substring(0, 10)
-      : ""
+    card.dueDate ? formatDateInput(card.dueDate) : ""
   );
   const [titleError, setTitleError] = useState("");
 
@@ -64,6 +69,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     const focusable = overlayRef.current.querySelectorAll<HTMLElement>(
       'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
     );
+    if (focusable.length === 0) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
     if (e.shiftKey) {
@@ -106,7 +112,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       title: title.trim(),
       description: finalDescription,
       tags: parsedTags,
-      dueDate: dueDate ? new Date(dueDate) : null,
+      dueDate: dueDate ? new Date(`${dueDate}T00:00:00`) : null,
     });
   }, [title, description, draftDescription, isEditingDescription, tagsInput, dueDate, onSave]);
 
@@ -131,7 +137,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
             aria-label="Close modal"
             className="text-gray-400 hover:text-gray-700 text-sm px-1"
           >
-            ✕
+            {"\u00D7"}
           </button>
         </header>
 
@@ -181,8 +187,13 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
                 onClick={handleDescriptionEdit}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && handleDescriptionEdit()}
-                className="min-h-20 h-auto border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm whitespace-pre-wrap wrap-break-word cursor-text hover:border-gray-400 transition-colors"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleDescriptionEdit();
+                  }
+                }}
+                className="min-h-20 h-auto border border-gray-200 rounded p-2 text-sm text-gray-700 whitespace-pre-wrap wrap-break-word cursor-text hover:border-gray-400 transition-colors"
                 aria-label="Click to edit description"
                 dangerouslySetInnerHTML={{
                   __html: description
