@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
 import ColumnCard from "@/components/column/ColumnCard";
 import ColumnModal from "@/components/column/ColumnModal";
@@ -17,7 +18,6 @@ export default function BoardPage() {
     columnsById,
     boardColumnMap,
     columnCardMap,
-    cardsById,
     createColumn,
     editBoard,
     editColumn,
@@ -26,7 +26,22 @@ export default function BoardPage() {
     editCard,
     deleteCard,
     setActiveCardId,
-  } = useStore();
+  } = useStore(
+    useShallow((state) => ({
+      boardsById: state.boardsById,
+      columnsById: state.columnsById,
+      boardColumnMap: state.boardColumnMap,
+      columnCardMap: state.columnCardMap,
+      createColumn: state.createColumn,
+      editBoard: state.editBoard,
+      editColumn: state.editColumn,
+      deleteColumn: state.deleteColumn,
+      createCard: state.createCard,
+      editCard: state.editCard,
+      deleteCard: state.deleteCard,
+      setActiveCardId: state.setActiveCardId,
+    }))
+  );
 
   const [showColumnModal, setShowColumnModal] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -38,8 +53,10 @@ export default function BoardPage() {
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
   const board = boardsById[boardId];
-  const activeCardId = useStore((state) => state.activeCardId);
-  const activeCard = activeCardId ? cardsById[activeCardId] : null;
+  const activeCard = useStore((state) => {
+    const activeId = state.activeCardId;
+    return activeId ? state.cardsById[activeId] : null;
+  });
 
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
@@ -192,7 +209,6 @@ export default function BoardPage() {
                   key={colId}
                   column={column}
                   cardIds={cardIds}
-                  cardsById={cardsById}
                   onEditColumn={editColumn}
                   onDeleteColumn={deleteColumn}
                   onCreateCard={createCard}

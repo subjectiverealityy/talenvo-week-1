@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef, memo } from "react";
-import type { Card, Column } from "@/types";
+import { useShallow } from "zustand/shallow";
+import type { Column } from "@/types";
+import { useStore } from "@/store/store";
 import CardItem from "@/components/card/CardItem";
 
 type ColumnCardProps = {
   column: Column;
   cardIds: string[];
-  cardsById: Record<string, Card>;
   onEditColumn: (payload: { columnId: string; title: string }) => void;
   onDeleteColumn: (payload: { columnId: string }) => void;
   onCreateCard: (payload: { columnId: string; title: string }) => void;
@@ -18,13 +19,15 @@ type ColumnCardProps = {
 export default memo(function ColumnCard({
   column,
   cardIds,
-  cardsById,
   onEditColumn,
   onDeleteColumn,
   onCreateCard,
   onOpenCard,
   onDeleteCard,
 }: ColumnCardProps) {
+  const cards = useStore(
+    useShallow((state) => cardIds.map((cardId) => state.cardsById[cardId]))
+  );
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -112,12 +115,11 @@ export default memo(function ColumnCard({
       </header>
 
       <ul className="flex flex-col gap-2" role="list" aria-label={`Cards in ${column.title}`}>
-        {cardIds.map((cardId) => {
-          const card = cardsById[cardId];
+        {cards.map((card) => {
           if (!card) return null;
           return (
             <CardItem
-              key={cardId}
+              key={card.id}
               card={card}
               onOpen={onOpenCard}
               onDelete={onDeleteCard}

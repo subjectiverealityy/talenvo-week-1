@@ -2,13 +2,21 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
 import BoardCard from "@/components/board/BoardCard";
 import CreateBoardModal from "@/components/board/CreateBoardModal";
 
 export default function EntryRoute() {
   const router = useRouter();
-  const { boardsById, boardIds, createBoard, deleteBoard } = useStore();
+  const { boardsById, boardIds, createBoard, deleteBoard } = useStore(
+    useShallow((state) => ({
+      boardsById: state.boardsById,
+      boardIds: state.boardIds,
+      createBoard: state.createBoard,
+      deleteBoard: state.deleteBoard,
+    }))
+  );
 
   const [showCreateModal, setShowCreateModal] = useState(false);
 
