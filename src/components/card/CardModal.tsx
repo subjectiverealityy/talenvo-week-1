@@ -4,7 +4,6 @@ import {
   useState,
   useEffect,
   useRef,
-  useCallback,
   KeyboardEvent,
 } from "react";
 import type { Card } from "@/types";
@@ -95,7 +94,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     setIsEditingDescription(false);
   }
 
-  const handleSave = useCallback(() => {
+  function handleSave() {
     if (!title.trim()) {
       setTitleError("Please enter a title to proceed.");
       return;
@@ -114,7 +113,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       tags: parsedTags,
       dueDate: dueDate ? new Date(`${dueDate}T00:00:00`) : null,
     });
-  }, [title, description, draftDescription, isEditingDescription, tagsInput, dueDate, onSave]);
+  }
 
   return (
     <div
@@ -137,7 +136,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
             aria-label="Close modal"
             className="text-gray-400 hover:text-gray-700 text-sm px-1"
           >
-            {"\u00D7"}
+            ✕
           </button>
         </header>
 

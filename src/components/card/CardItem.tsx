@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { Card } from "@/store/store";
+import type { Card } from "@/types";
 import { parseMarkdown } from "@/lib/markdown";
 
 type CardItemProps = {
@@ -11,8 +11,14 @@ type CardItemProps = {
 };
 
 const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProps) {
-  const isOverdue =
-    card.dueDate !== null && new Date(card.dueDate) < new Date();
+  const isOverdue = (() => {
+    if (!card.dueDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = card.dueDate;
+    due.setHours(0, 0, 0, 0);
+    return due < today;
+  })();
 
   function handleDelete(e: React.MouseEvent) {
     e.stopPropagation();
@@ -69,11 +75,11 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
         {card.dueDate && (
           <time
             className={`block mt-2 text-xs ${isOverdue ? "text-red-500" : "text-gray-400"}`}
-            dateTime={new Date(card.dueDate).toISOString()}
-            aria-label={`Due date: ${new Date(card.dueDate).toLocaleDateString()}`}
+            dateTime={card.dueDate.toISOString()}
+            aria-label={`Due date: ${card.dueDate.toLocaleDateString()}`}
           >
             {isOverdue && "Overdue ("}
-            {new Date(card.dueDate).toLocaleDateString("en-GB", {
+            {card.dueDate.toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",
             })}
