@@ -3,28 +3,21 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useStore } from "@/store/store";
-import BoardInputField from "@/components/board/BoardInputField";
 import BoardCard from "@/components/board/BoardCard";
+import CreateBoardModal from "@/components/board/CreateBoardModal";
 
 export default function EntryRoute() {
   const router = useRouter();
-  const { boardsById, boardIds, createBoard, deleteBoard } =
-    useStore();
+  const { boardsById, boardIds, createBoard, deleteBoard } = useStore();
 
-  const [newTitle, setNewTitle] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [titleError, setTitleError] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const handleCreateBoard = useCallback(() => {
-  if (!newTitle.trim()) {
-    setTitleError("Oops! You can't create a board without a title.");
-    return;
-  }
-  createBoard({ title: newTitle, description: newDescription });
-  setNewTitle("");
-  setNewDescription("");
-  setTitleError("");
-}, [newTitle, newDescription, createBoard]);
+  const handleCreateBoard = useCallback(
+    (title: string, description: string) => {
+      createBoard({ title, description });
+    },
+    [createBoard]
+  );
 
   const handleOpenBoard = useCallback(
     (id: string) => {
@@ -51,35 +44,14 @@ export default function EntryRoute() {
         </p>
       </header>
 
-      <section aria-label="Create a new board" className="mb-8 max-xl">
-        <BoardInputField
-          id="board-title"
-          label="Board title"
-          value={newTitle}
-          onChange={(v) => {
-            setNewTitle(v);
-            if (titleError) setTitleError("");
-          }}
-          placeholder="Give your new board a name"
-          error={titleError}
-        />
-        <BoardInputField
-          id="board-description"
-          label="Description (optional)"
-          value={newDescription}
-          onChange={setNewDescription}
-          placeholder="Give your new board a description"
-        />
+      <section aria-label="Board list" className="mb-8">
         <button
-          className="bg-gray-200 border px-4 py-2 rounded mb-4 cursor-pointer"
-          onClick={handleCreateBoard}
+          onClick={() => setShowCreateModal(true)}
           aria-label="Create new board"
+          className="mx-auto mb-8 w-16 h-16 rounded-full bg-gray-800 text-white text-3xl flex items-center justify-center hover:bg-gray-700 transition-colors"
         >
-          Create Board
+          +
         </button>
-      </section>
-
-      <section aria-label="Board list">
         <ul role="list">
           {boardIds.map((id) => {
             const board = boardsById[id];
@@ -95,6 +67,13 @@ export default function EntryRoute() {
           })}
         </ul>
       </section>
+
+      {showCreateModal && (
+        <CreateBoardModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreateBoard}
+        />
+      )}
     </main>
   );
 }
