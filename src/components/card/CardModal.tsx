@@ -78,28 +78,31 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     setIsEditingDescription(true);
   }
 
-  function handleDescriptionSave() {
+  function handleDescriptionBlur() {
     setDescription(draftDescription);
     setIsEditingDescription(false);
   }
 
   const handleSave = useCallback(() => {
     if (!title.trim()) {
-      setTitleError("Title is required.");
+      setTitleError("Please enter a title to proceed.");
       return;
     }
     const parsedTags = tagsInput
       .split(",")
       .map((t: string) => t.trim())
-      .filter(tag => tag.length > 0);
+      .filter((tag) => tag.length > 0);
+
+    // Use draftDescription if the the user's description box is still on 'edit mode' when they click the 'Save' button (i.e. if isEditingDescription is true).
+    const finalDescription = isEditingDescription ? draftDescription : description;
 
     onSave({
       title: title.trim(),
-      description,
+      description: finalDescription,
       tags: parsedTags,
       dueDate: dueDate ? new Date(dueDate) : null,
     });
-  }, [title, description, tagsInput, dueDate, onSave]);
+  }, [title, description, draftDescription, isEditingDescription, tagsInput, dueDate, onSave]);
 
   return (
     <div
@@ -117,6 +120,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           </h2>
           <button
             ref={closeButtonRef}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={onClose}
             aria-label="Close modal"
             className="text-gray-400 hover:text-gray-700 text-sm px-1"
@@ -154,36 +158,31 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-sm font-medium">Description</label>
-              <button
-                onClick={isEditingDescription ? handleDescriptionSave : handleDescriptionEdit}
-                aria-label={isEditingDescription ? "Save description" : "Edit description"}
-                className="text-xs text-gray-500 hover:text-gray-800 border border-gray-300 rounded px-2 py-0.5"
-              >
-                {isEditingDescription ? "Save" : "Edit"}
-              </button>
-            </div>
+            <label className="text-sm font-medium block mb-1">Description</label>
 
             {isEditingDescription ? (
               <textarea
                 ref={textareaRef}
-                id="card-description"
                 value={draftDescription}
                 onChange={(e) => setDraftDescription(e.target.value)}
-                placeholder="you can use *...* for italics or **...** for bold"
+                onBlur={handleDescriptionBlur}
+                placeholder="You can use *...* for italics and **...** for bold."
                 rows={5}
-                className="block w-full border border-gray-300 p-2 rounded text-sm resize-none"
-                aria-label="Card description"
+                className="block w-full border border-gray-300 p-2 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-400"
+                aria-label="Card description editor"
               />
             ) : (
               <div
-                className="min-h-20 border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm wrap-break-word"
-                aria-label="Description preview"
+                onClick={handleDescriptionEdit}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && handleDescriptionEdit()}
+                className="min-h-20 border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm wrap-break-word cursor-text hover:border-gray-400 transition-colors"
+                aria-label="Click to edit description"
                 dangerouslySetInnerHTML={{
                   __html: description
                     ? parseMarkdown(description)
-                    : "<p class='text-gray-400'>click the 'edit' button to add a description</p>",
+                    : "<p class='text-gray-400'>Click to add a description (markdown is supported).</p>",
                 }}
               />
             )}
@@ -222,12 +221,14 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
 
         <footer className="flex justify-end gap-2 px-6 pb-6">
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:border-gray-500"
           >
             Cancel
           </button>
           <button
+            onMouseDown={(e) => e.preventDefault()}
             onClick={handleSave}
             className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700"
           >
