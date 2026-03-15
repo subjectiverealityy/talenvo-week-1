@@ -53,6 +53,12 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     }
   }, [isEditingDescription]);
 
+  useEffect(() => {
+    if (!isEditingDescription || !textareaRef.current) return;
+    textareaRef.current.style.height = "auto";
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+  }, [isEditingDescription, draftDescription]);
+
   function trapFocus(e: KeyboardEvent<HTMLDivElement>) {
     if (e.key !== "Tab" || !overlayRef.current) return;
     const focusable = overlayRef.current.querySelectorAll<HTMLElement>(
@@ -167,8 +173,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
                 onChange={(e) => setDraftDescription(e.target.value)}
                 onBlur={handleDescriptionBlur}
                 placeholder="You can use *...* for italics and **...** for bold."
-                rows={5}
-                className="block w-full border border-gray-300 p-2 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-400"
+                className="min-h-20 h-auto block w-full border border-gray-300 p-2 rounded text-sm resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-gray-400"
                 aria-label="Card description editor"
               />
             ) : (
@@ -177,7 +182,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && handleDescriptionEdit()}
-                className="min-h-20 border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm wrap-break-word cursor-text hover:border-gray-400 transition-colors"
+                className="min-h-20 h-auto border border-gray-200 rounded p-2 text-sm text-gray-700 prose prose-sm whitespace-pre-wrap wrap-break-word cursor-text hover:border-gray-400 transition-colors"
                 aria-label="Click to edit description"
                 dangerouslySetInnerHTML={{
                   __html: description
