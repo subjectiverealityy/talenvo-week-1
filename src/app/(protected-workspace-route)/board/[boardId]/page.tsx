@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
@@ -27,6 +27,8 @@ export default function BoardPage() {
     editCard,
     deleteCard,
     setActiveCardId,
+    undo,
+    redo,
   } = useStore(
     useShallow((state) => ({
       boardsById: state.boardsById,
@@ -41,6 +43,8 @@ export default function BoardPage() {
       editCard: state.editCard,
       deleteCard: state.deleteCard,
       setActiveCardId: state.setActiveCardId,
+      undo: state.undo,
+      redo: state.redo,
     }))
   );
 
@@ -92,6 +96,39 @@ export default function BoardPage() {
     }
     setPendingDelete(null);
   }, [deleteCard, deleteColumn, pendingDelete]);
+
+  const handleKeyDown = useCallback((event: KeyboardEvent) => {
+    const target = event.target as HTMLElement | null;
+    if (target) {
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable) return;
+    }
+
+    const isMac = /Mac|iPhone|iPad|iPod/i.test(navigator.platform);
+    const modKey = isMac ? event.metaKey : event.ctrlKey;
+    if (!modKey) return;
+
+    const key = event.key.toLowerCase();
+    if (key === "z") {
+      event.preventDefault();
+      if (event.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+      return;
+    }
+
+    if (key === "y" && !isMac) {
+      event.preventDefault();
+      redo();
+    }
+  }, [undo, redo]);
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   function startEditTitle() {
     setEditTitle(board?.title ?? "");
