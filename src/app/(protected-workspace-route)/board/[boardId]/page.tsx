@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { DndContext, DragOverlay, PointerSensor, closestCorners, useSensor, useSensors, type DragEndEvent, type DragStartEvent } from "@dnd-kit/core";
 import { useParams, useRouter } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
+import { updateCardPosition } from "@/lib/mockApi";
 import ColumnCard from "@/components/column/ColumnCard";
 import ColumnModal from "@/components/column/ColumnModal";
 import CardModal from "@/components/card/CardModal";
@@ -26,6 +28,7 @@ export default function BoardPage() {
     createCard,
     editCard,
     deleteCard,
+    moveCard,
     setActiveCardId,
     undo,
     redo,
@@ -42,6 +45,7 @@ export default function BoardPage() {
       createCard: state.createCard,
       editCard: state.editCard,
       deleteCard: state.deleteCard,
+      moveCard: state.moveCard,
       setActiveCardId: state.setActiveCardId,
       undo: state.undo,
       redo: state.redo,
@@ -58,6 +62,9 @@ export default function BoardPage() {
     id: string;
   } | null>(null);
 
+  const [activeDragCardId, setActiveDragCardId] = useState<string | null>(null);
+
+
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
@@ -66,6 +73,10 @@ export default function BoardPage() {
     const activeId = state.activeCardId;
     return activeId ? state.cardsById[activeId] : null;
   });
+
+  const draggingCard = useStore((state) =>
+    activeDragCardId ? state.cardsById[activeDragCardId] : null
+  );
 
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
@@ -129,6 +140,86 @@ export default function BoardPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 5 },
+    })
+  );
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const activeData = event.active.data.current as { type?: string } | undefined;
+    if (activeData?.type === "card") {
+      setActiveDragCardId(event.active.id as string);
+    }
+  }, []);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveDragCardId(null);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) {
+      setActiveDragCardId(null);
+      return;
+    }
+
+    const activeId = active.id as string;
+    const activeData = active.data.current as { type?: string; columnId?: string } | undefined;
+    if (!activeData?.columnId) {
+      setActiveDragCardId(null);
+      return;
+    }
+
+    const sourceColumnId = activeData.columnId;
+    let destinationColumnId = sourceColumnId;
+    let newIndex = 0;
+
+    const overData = over.data.current as { type?: string; columnId?: string } | undefined;
+    if (overData?.type === "column") {
+      destinationColumnId = over.id as string;
+      const destinationCards = columnCardMap[destinationColumnId] ?? [];
+      newIndex = destinationCards.length;
+    } else {
+      destinationColumnId = overData?.columnId ?? sourceColumnId;
+      const destinationCards = columnCardMap[destinationColumnId] ?? [];
+      const overIndex = destinationCards.indexOf(over.id as string);
+      newIndex = overIndex === -1 ? destinationCards.length : overIndex;
+
+      if (sourceColumnId === destinationColumnId) {
+        const activeIndex = destinationCards.indexOf(activeId);
+        if (activeIndex !== -1 && activeIndex < newIndex) {
+          newIndex -= 1;
+        }
+      }
+    }
+
+    const sourceCards = columnCardMap[sourceColumnId] ?? [];
+    const currentIndex = sourceCards.indexOf(activeId);
+    if (sourceColumnId === destinationColumnId && currentIndex === newIndex) {
+      setActiveDragCardId(null);
+      return;
+    }
+
+    moveCard({
+      cardId: activeId,
+      sourceColumnId,
+      destinationColumnId,
+      newIndex,
+    });
+
+    void updateCardPosition({
+      cardId: activeId,
+      sourceColumnId,
+      destinationColumnId,
+      newIndex,
+    }).catch((error) => {
+      console.error("Failed to persist card move", error);
+    });
+
+    setActiveDragCardId(null);
+  }, [columnCardMap, moveCard]);
 
   function startEditTitle() {
     setEditTitle(board?.title ?? "");
@@ -251,35 +342,51 @@ export default function BoardPage() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        <div
-          className="flex gap-4 p-6 h-full overflow-x-auto items-start"
-          role="region"
-          aria-label="Board columns"
-        >
-          {columnIds.length === 0 ? (
-            <p className="text-sm text-gray-400">You haven't created any columns yet.</p>
-          ) : (
-            columnIds.map((colId) => {
-              const column = columnsById[colId];
-              if (!column) return null;
-              const cardIds = columnCardMap[colId] ?? [];
-              return (
-                <ColumnCard
-                  key={colId}
-                  column={column}
-                  cardIds={cardIds}
-                  onEditColumn={editColumn}
-                  onDeleteColumn={requestDeleteColumn}
-                  onCreateCard={createCard}
-                  onOpenCard={setActiveCardId}
-                  onDeleteCard={requestDeleteCard}
-                />
-              );
-            })
-          )}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragCancel={handleDragCancel}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 overflow-hidden">
+          <div
+            className="flex gap-4 p-6 h-full overflow-x-auto items-start"
+            role="region"
+            aria-label="Board columns"
+          >
+            {columnIds.length === 0 ? (
+              <p className="text-sm text-gray-400">You haven't created any columns yet.</p>
+            ) : (
+              columnIds.map((colId) => {
+                const column = columnsById[colId];
+                if (!column) return null;
+                const cardIds = columnCardMap[colId] ?? [];
+                return (
+                  <ColumnCard
+                    key={colId}
+                    column={column}
+                    cardIds={cardIds}
+                    onEditColumn={editColumn}
+                    onDeleteColumn={requestDeleteColumn}
+                    onCreateCard={createCard}
+                    onOpenCard={setActiveCardId}
+                    onDeleteCard={requestDeleteCard}
+                  />
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+
+        <DragOverlay>
+          {draggingCard ? (
+            <div className="bg-white border border-gray-200 rounded p-3 shadow-md w-60">
+              <div className="text-sm font-medium wrap-break-word">{draggingCard.title}</div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {showColumnModal && (
         <ColumnModal

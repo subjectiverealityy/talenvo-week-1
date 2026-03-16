@@ -1,6 +1,8 @@
 "use client";
 
 import { memo } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Card } from "@/types";
 import { parseMarkdown } from "@/lib/markdown";
 
@@ -11,6 +13,17 @@ type CardItemProps = {
 };
 
 const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: card.id,
+    data: { type: "card", columnId: card.columnId },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : undefined,
+  };
+
   const isOverdue = (() => {
     if (!card.dueDate) return false;
     const today = new Date();
@@ -26,8 +39,10 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
   }
 
   return (
-    <li>
+    <li ref={setNodeRef} style={style}>
       <article
+        {...attributes}
+        {...listeners}
         className="bg-white border border-gray-200 rounded p-3 cursor-pointer hover:shadow-sm transition-shadow"
         onClick={() => onOpen(card.id)}
         tabIndex={0}

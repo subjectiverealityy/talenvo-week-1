@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, memo } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useShallow } from "zustand/shallow";
 import type { Column } from "@/types";
 import { useStore } from "@/store/store";
@@ -28,6 +30,11 @@ export default memo(function ColumnCard({
   const cards = useStore(
     useShallow((state) => cardIds.map((cardId) => state.cardsById[cardId]))
   );
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+    data: { type: "column" },
+  });
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -67,7 +74,8 @@ export default memo(function ColumnCard({
 
   return (
     <section
-      className="bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto"
+      ref={setNodeRef}
+      className={`bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto ${isOver ? "ring-2 ring-gray-300" : ""}`}
       aria-label={`Column: ${column.title}`}
     >
       <header className="flex items-center justify-between gap-2">
@@ -114,19 +122,21 @@ export default memo(function ColumnCard({
         </button>
       </header>
 
-      <ul className="flex flex-col gap-2" role="list" aria-label={`Cards in ${column.title}`}>
-        {cards.map((card) => {
-          if (!card) return null;
-          return (
-            <CardItem
-              key={card.id}
-              card={card}
-              onOpen={onOpenCard}
-              onDelete={onDeleteCard}
-            />
-          );
-        })}
-      </ul>
+      <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+        <ul className="flex flex-col gap-2" role="list" aria-label={`Cards in ${column.title}`}>
+          {cards.map((card) => {
+            if (!card) return null;
+            return (
+              <CardItem
+                key={card.id}
+                card={card}
+                onOpen={onOpenCard}
+                onDelete={onDeleteCard}
+              />
+            );
+          })}
+        </ul>
+      </SortableContext>
 
       {isAddingCard ? (
         <>

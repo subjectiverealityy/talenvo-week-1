@@ -100,33 +100,42 @@ export function moveCard(
   if (!state.columnCardMap[payload.sourceColumnId]) return {};
   if (!state.columnCardMap[payload.destinationColumnId]) return {};
 
+  const isSameColumn = payload.sourceColumnId === payload.destinationColumnId;
+
   // Remove card from source column
   const sourceColumnCards = state.columnCardMap[payload.sourceColumnId].filter(
     (id) => id !== payload.cardId
   );
 
   // Insert card at target index in destination column
-  const destinationColumnCards = [...state.columnCardMap[payload.destinationColumnId]];
+  const destinationBase = isSameColumn
+    ? sourceColumnCards
+    : state.columnCardMap[payload.destinationColumnId];
+  const destinationColumnCards = [...destinationBase];
   const safeIndex = clampIndex(payload.newIndex, destinationColumnCards.length);
   destinationColumnCards.splice(safeIndex, 0, payload.cardId);
 
-  const columnCardMap = {
-    ...state.columnCardMap,
-    [payload.sourceColumnId]: sourceColumnCards,
-    [payload.destinationColumnId]: destinationColumnCards,
-  };
+  const columnCardMap = isSameColumn
+    ? {
+        ...state.columnCardMap,
+        [payload.sourceColumnId]: destinationColumnCards,
+      }
+    : {
+        ...state.columnCardMap,
+        [payload.sourceColumnId]: sourceColumnCards,
+        [payload.destinationColumnId]: destinationColumnCards,
+      };
 
   // Update columnId on the card only if it moved to a different column
-  const cardsById =
-    payload.sourceColumnId !== payload.destinationColumnId
-      ? {
-          ...state.cardsById,
-          [payload.cardId]: {
-            ...state.cardsById[payload.cardId],
-            columnId: payload.destinationColumnId,
-          },
-        }
-      : state.cardsById;
+  const cardsById = isSameColumn
+    ? state.cardsById
+    : {
+        ...state.cardsById,
+        [payload.cardId]: {
+          ...state.cardsById[payload.cardId],
+          columnId: payload.destinationColumnId,
+        },
+      };
 
   return {
     columnCardMap,
