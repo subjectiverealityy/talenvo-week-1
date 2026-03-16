@@ -6,6 +6,7 @@ import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
 import BoardCard from "@/components/board/BoardCard";
 import CreateBoardModal from "@/components/board/CreateBoardModal";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function EntryRoute() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function EntryRoute() {
   );
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [pendingBoardDeleteId, setPendingBoardDeleteId] = useState<string | null>(null);
 
   const handleCreateBoard = useCallback(
     (title: string, description: string) => {
@@ -36,10 +38,16 @@ export default function EntryRoute() {
 
   const handleDeleteBoard = useCallback(
     (id: string) => {
-      deleteBoard({ boardId: id });
+      setPendingBoardDeleteId(id);
     },
-    [deleteBoard]
+    [setPendingBoardDeleteId]
   );
+
+  const handleConfirmDeleteBoard = useCallback(() => {
+    if (!pendingBoardDeleteId) return;
+    deleteBoard({ boardId: pendingBoardDeleteId });
+    setPendingBoardDeleteId(null);
+  }, [deleteBoard, pendingBoardDeleteId]);
 
   return (
     <main className="p-16 max-w-xl mx-auto">
@@ -82,6 +90,15 @@ export default function EntryRoute() {
           onCreate={handleCreateBoard}
         />
       )}
+
+      {pendingBoardDeleteId && (
+        <ConfirmDeleteModal
+          onCancel={() => setPendingBoardDeleteId(null)}
+          onConfirm={handleConfirmDeleteBoard}
+          itemLabel="board"
+        />
+      )}
+
     </main>
   );
 }

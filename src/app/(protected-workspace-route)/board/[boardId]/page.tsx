@@ -7,6 +7,7 @@ import { useStore } from "@/store/store";
 import ColumnCard from "@/components/column/ColumnCard";
 import ColumnModal from "@/components/column/ColumnModal";
 import CardModal from "@/components/card/CardModal";
+import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 
 export default function BoardPage() {
   const params = useParams();
@@ -48,6 +49,10 @@ export default function BoardPage() {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<{
+    type: "column" | "card";
+    id: string;
+  } | null>(null);
 
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
@@ -69,6 +74,24 @@ export default function BoardPage() {
     editBoard({ boardId, updates: { description: editDescription.trim() } });
     setIsEditingDescription(false);
   }, [editDescription, boardId, editBoard]);
+
+  const requestDeleteColumn = useCallback((payload: { columnId: string }) => {
+    setPendingDelete({ type: "column", id: payload.columnId });
+  }, [setPendingDelete]);
+
+  const requestDeleteCard = useCallback((payload: { cardId: string }) => {
+    setPendingDelete({ type: "card", id: payload.cardId });
+  }, [setPendingDelete]);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === "column") {
+      deleteColumn({ columnId: pendingDelete.id });
+    } else {
+      deleteCard({ cardId: pendingDelete.id });
+    }
+    setPendingDelete(null);
+  }, [deleteCard, deleteColumn, pendingDelete]);
 
   function startEditTitle() {
     setEditTitle(board?.title ?? "");
@@ -210,10 +233,10 @@ export default function BoardPage() {
                   column={column}
                   cardIds={cardIds}
                   onEditColumn={editColumn}
-                  onDeleteColumn={deleteColumn}
+                  onDeleteColumn={requestDeleteColumn}
                   onCreateCard={createCard}
                   onOpenCard={setActiveCardId}
-                  onDeleteCard={deleteCard}
+                  onDeleteCard={requestDeleteCard}
                 />
               );
             })
@@ -238,6 +261,15 @@ export default function BoardPage() {
           }}
         />
       )}
+
+      {pendingDelete && (
+        <ConfirmDeleteModal
+          onCancel={() => setPendingDelete(null)}
+          onConfirm={handleConfirmDelete}
+          itemLabel={pendingDelete.type}
+        />
+      )}
+
     </div>
   );
 }
