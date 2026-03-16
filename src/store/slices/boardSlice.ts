@@ -23,3 +23,5 @@ export function createBoardSlice(
       set(deleteBoard(get(), payload)),
   };
 }
+
+export type BoardSlice = ReturnType<typeof createBoardSlice>;

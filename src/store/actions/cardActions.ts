@@ -107,7 +107,8 @@ export function moveCard(
 
   // Insert card at target index in destination column
   const destinationColumnCards = [...state.columnCardMap[payload.destinationColumnId]];
-  destinationColumnCards.splice(payload.newIndex, 0, payload.cardId);
+  const safeIndex = clampIndex(payload.newIndex, destinationColumnCards.length);
+  destinationColumnCards.splice(safeIndex, 0, payload.cardId);
 
   const columnCardMap = {
     ...state.columnCardMap,
@@ -131,4 +132,10 @@ export function moveCard(
     columnCardMap,
     cardsById,
   };
+}
+
+function clampIndex(index: number, length: number): number {
+  if (index < 0) return 0;
+  if (index > length) return length;
+  return index;
 }

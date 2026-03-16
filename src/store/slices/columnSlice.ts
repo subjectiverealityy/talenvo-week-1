@@ -21,3 +21,5 @@ export function createColumnSlice(
       set(deleteColumn(get(), payload)),
   };
 }
+
+export type ColumnSlice = ReturnType<typeof createColumnSlice>;

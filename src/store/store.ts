@@ -9,14 +9,21 @@ import type { PersistedState, VisualState } from "@/store/types";
 import { createBoardSlice } from "@/store/slices/boardSlice";
 import { createColumnSlice } from "@/store/slices/columnSlice";
 import { createCardSlice } from "@/store/slices/cardSlice";
+import { createHistorySlice } from "@/store/slices/historySlice";
+import type { BoardSlice } from "@/store/slices/boardSlice";
+import type { ColumnSlice } from "@/store/slices/columnSlice";
+import type { CardSlice } from "@/store/slices/cardSlice";
+import type { HistorySlice } from "@/store/slices/historySlice";
 
 // StoreState combines all the domain states, visual states, and the methods exposed by each slice.
 type StoreState = PersistedState &
   VisualState & {
     setActiveCardId: (id: string | null) => void;
-  } & ReturnType<typeof createBoardSlice> &
-  ReturnType<typeof createColumnSlice> &
-  ReturnType<typeof createCardSlice>;
+  } &
+  BoardSlice &
+  ColumnSlice &
+  CardSlice &
+  HistorySlice;
 
 // This object is used to initialize the Zustand store with empty values before any data is loaded. It needs to follow the shape of PersistedState, and should be updated if you add new fields to PersistedState.
 const defaultState: PersistedState = {
@@ -62,6 +69,11 @@ export const useStore = create<StoreState>()(
         // Card slice
         ...createCardSlice(
           (partial) => set(partial, false, "card"),
+          () => get()
+        ),
+        // History slice
+        ...createHistorySlice(
+          (partial, _replace, action) => set(partial, false, action ?? "history"),
           () => get()
         ),
       }),
