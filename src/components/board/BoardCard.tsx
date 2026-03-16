@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import type { Board } from "@/store/store";
+import type { Board } from "@/types";
 
 type BoardCardProps = {
   board: Board;

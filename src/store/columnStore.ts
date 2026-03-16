@@ -82,7 +82,7 @@ export function useColumnActions(deps: Deps) {
         if (boardId) {
           setBoardColumnMap((prevMap) => ({
             ...prevMap,
-            [boardId]: prevMap[boardId].filter((id) => id !== columnId),
+            [boardId]: (prevMap[boardId] ?? []).filter((id) => id !== payload.columnId),
           }));
         }
 
