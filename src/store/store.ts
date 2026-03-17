@@ -14,6 +14,8 @@ import type { BoardSlice } from "@/store/slices/boardSlice";
 import type { ColumnSlice } from "@/store/slices/columnSlice";
 import type { CardSlice } from "@/store/slices/cardSlice";
 import type { HistorySlice } from "@/store/slices/historySlice";
+import { createCommentSlice } from "@/store/slices/commentSlice";
+import type { CommentSlice } from "@/store/slices/commentSlice";
 
 // StoreState combines all the domain states, visual states, and the methods exposed by each slice.
 type StoreState = PersistedState &
@@ -23,7 +25,8 @@ type StoreState = PersistedState &
   BoardSlice &
   ColumnSlice &
   CardSlice &
-  HistorySlice;
+  HistorySlice &
+  CommentSlice;
 
 // This object is used to initialize the Zustand store with empty values before any data is loaded. It needs to follow the shape of PersistedState, and should be updated if you add new fields to PersistedState.
 const defaultState: PersistedState = {
@@ -33,13 +36,16 @@ const defaultState: PersistedState = {
   boardColumnMap: {},
   cardsById: {},
   columnCardMap: {},
+  commentsById: {},
+  cardCommentMap: {},
+  commentReplyMap: {},
 };
 
 // When a Date object is saved to localStorage, it is converted into a string. The JSON reviver restores the string back into a Date object on deserialization. 
 // Update the reviver if a new Date field is added to PersistedState.
 const persistStorage = createJSONStorage<PersistedState>(() => localStorage, {
   reviver: (key, value) => {
-    if ((key === "dateCreated" || key === "dueDate") && typeof value === "string") {
+    if ((key === "dateCreated" || key === "dueDate" || key === "editedAt" || key === "createdAt") && typeof value === "string") {
       const parsed = new Date(value);
       return Number.isNaN(parsed.getTime()) ? value : parsed;
     }
@@ -76,6 +82,11 @@ export const useStore = create<StoreState>()(
           (partial, _replace, action) => set(partial, false, action ?? "history"),
           () => get()
         ),
+        // Comment slice
+        ...createCommentSlice(
+          (partial) => set(partial, false, "comment"),
+          () => get()
+        ),
       }),
       {
         // Versioned key - change to "app_v2" if PersistedState shape changes to avoid silent data corruption from stale stored data.
@@ -89,6 +100,9 @@ export const useStore = create<StoreState>()(
           boardColumnMap: state.boardColumnMap,
           cardsById: state.cardsById,
           columnCardMap: state.columnCardMap,
+          commentsById: state.commentsById,
+          cardCommentMap: state.cardCommentMap,
+          commentReplyMap: state.commentReplyMap,
         }),
       }
     ),

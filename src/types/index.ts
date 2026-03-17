@@ -25,3 +25,13 @@ export type Card = {
   dueDate: Date | null;
   columnId: string;
 };
+
+export type Comment = {
+  id: string;
+  cardId: string;
+  parentId: string | null; // null for top-level comments or the id of the parent comment for replies
+  author: string;
+  body: string;
+  createdAt: Date;
+  editedAt: Date | null;
+}

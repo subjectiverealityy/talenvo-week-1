@@ -7,7 +7,7 @@
 // boardColumnMap: maps all board IDs to the ordered array of column IDs that they contain
 // columnCardMap: maps all column IDs to the ordered array of card IDs that they contain
 
-import type { Board, Column, Card } from "@/types";
+import type { Board, Column, Card, Comment } from "@/types";
 
 export type VisualState = {
   activeCardId: string | null;
@@ -20,6 +20,9 @@ export type PersistedState = {
   boardColumnMap: Record<string, string[]>;
   cardsById: Record<string, Card>;
   columnCardMap: Record<string, string[]>;
+  commentsById: Record<string, Comment>;
+  cardCommentMap: Record<string, string[]>;    // cardId - top-level comment ids
+  commentReplyMap: Record<string, string[]>;   // commentId - reply ids
 };
 
 // Action defines every possible state mutation in the app as a discriminated union. Each action has a type (what happened) and a payload (the data needed to apply it). UNDO and REDO have no payload - they operate on the history log.
@@ -34,5 +37,8 @@ export type Action =
   | { type: "EDIT_CARD"; payload: { cardId: string; updates: Partial<Omit<Card, "id" | "columnId">> } }
   | { type: "DELETE_CARD"; payload: { cardId: string } }
   | { type: "MOVE_CARD"; payload: { cardId: string; sourceColumnId: string; destinationColumnId: string; newIndex: number } }
+  | { type: "CREATE_COMMENT"; payload: { cardId: string; parentId: string | null; author: string; body: string } }
+  | { type: "EDIT_COMMENT"; payload: { commentId: string; body: string } }
+  | { type: "DELETE_COMMENT"; payload: { commentId: string } }
   | { type: "UNDO" }
   | { type: "REDO" };

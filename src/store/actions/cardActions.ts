@@ -5,6 +5,7 @@
 
 import type { PersistedState } from "@/store/types";
 import type { Card } from "@/types";
+import { deleteCardComments } from "@/store/actions/commentActions";
 
 export function createCard(
   state: PersistedState,
@@ -77,9 +78,13 @@ export function deleteCard(
     (id) => id !== payload.cardId
   );
 
+  // Cascade delete all comments on this card
+  const commentUpdates = deleteCardComments(state, { cardId: payload.cardId });
+
   return {
     cardsById,
     columnCardMap,
+    ...commentUpdates,
   };
 }
 

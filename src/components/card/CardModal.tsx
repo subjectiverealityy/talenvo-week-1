@@ -8,6 +8,7 @@ import {
 } from "react";
 import type { Card } from "@/types";
 import { parseMarkdown } from "@/lib/markdown";
+import CommentSection from "@/components/card/CommentSection";
 
 type CardModalProps = {
   card: Card;
@@ -232,6 +233,11 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
               By clicking on the calendar, you can select a due date, or remove a due date by clicking 'Clear'.
             </p>
           </div>
+        </div>
+
+        <div className="px-6 pb-2">
+          <hr className="border-gray-100 mb-4" />
+          <CommentSection cardId={card.id} />
         </div>
 
         <footer className="flex justify-end gap-2 px-6 pb-6">
