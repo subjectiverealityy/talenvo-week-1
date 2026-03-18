@@ -65,7 +65,6 @@ export default function BoardPage() {
 
   const [activeDragCardId, setActiveDragCardId] = useState<string | null>(null);
 
-
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descriptionInputRef = useRef<HTMLInputElement>(null);
 
@@ -82,14 +81,12 @@ export default function BoardPage() {
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
       editBoard({ boardId, updates: { title: editTitle.trim() } });
-      void broadcast({ type: "BOARD_EDITED", payload: { boardId, updates: { title: editTitle.trim() } } });
     }
     setIsEditingTitle(false);
   }, [editTitle, boardId, editBoard]);
 
   const handleDescriptionSave = useCallback(() => {
     editBoard({ boardId, updates: { description: editDescription.trim() } });
-    void broadcast({ type: "BOARD_EDITED", payload: { boardId, updates: { description: editDescription.trim() } } });
     setIsEditingDescription(false);
   }, [editDescription, boardId, editBoard]);
 
@@ -105,10 +102,8 @@ export default function BoardPage() {
     if (!pendingDelete) return;
     if (pendingDelete.type === "column") {
       deleteColumn({ columnId: pendingDelete.id });
-      void broadcast({ type: "COLUMN_DELETED", payload: { columnId: pendingDelete.id } });
     } else {
       deleteCard({ cardId: pendingDelete.id });
-      void broadcast({ type: "CARD_DELETED", payload: { cardId: pendingDelete.id } });
     }
     setPendingDelete(null);
   }, [deleteCard, deleteColumn, pendingDelete]);
@@ -245,6 +240,29 @@ export default function BoardPage() {
     setTimeout(() => descriptionInputRef.current?.focus(), 0);
   }
 
+   // Dev-only performance testing utilities
+  function seedTestData() {
+    const store = useStore.getState();
+    for (let c = 0; c < 21; c++) {
+      store.createColumn({ boardId, title: `Column ${c + 1}` });
+      const colId = useStore.getState().boardColumnMap[boardId].at(-1)!;
+      for (let k = 0; k < 10; k++) {
+        store.createCard({
+          columnId: colId,
+          title: `Card ${c + 1}-${k + 1}`,
+          description: k % 2 === 0 ? "Some **markdown** description" : undefined,
+          tags: k % 3 === 0 ? ["tag1", "tag2"] : [],
+        });
+      }
+    }
+  }
+
+  function clearTestData() {
+    const store = useStore.getState();
+    const colIds = store.boardColumnMap[boardId] ?? [];
+    colIds.forEach((colId) => store.deleteColumn({ columnId: colId }));
+  }
+
   if (!board) {
     return (
       <div className="h-screen flex flex-col">
@@ -368,7 +386,7 @@ export default function BoardPage() {
             aria-label="Board columns"
           >
             {columnIds.length === 0 ? (
-              <p className="text-sm text-gray-400">You haven&apos;t created any columns yet.</p>
+              <p className="text-sm text-gray-400">You haven't created any columns yet.</p>
             ) : (
               columnIds.map((colId) => {
                 const column = columnsById[colId];
@@ -379,16 +397,13 @@ export default function BoardPage() {
                     key={colId}
                     column={column}
                     cardIds={cardIds}
-                    onEditColumn={(payload) => {
-                      editColumn(payload);
-                      void broadcast({ type: "COLUMN_EDITED", payload });
-                    }}
+                    onEditColumn={editColumn}
                     onDeleteColumn={requestDeleteColumn}
                     onCreateCard={(payload) => {
                       const id = crypto.randomUUID();
-                      createCard({ id, ...payload });
-                      void broadcast({ type: "CARD_CREATED", payload: { id, ...payload } });
-                    }}                  
+                      createCard({ ...payload, id });
+                      void broadcast({ type: "CARD_CREATED", payload: { ...payload, id } });
+                    }}
                     onOpenCard={setActiveCardId}
                     onDeleteCard={requestDeleteCard}
                   />
@@ -410,11 +425,7 @@ export default function BoardPage() {
       {showColumnModal && (
         <ColumnModal
           onClose={() => setShowColumnModal(false)}
-          onAdd={(title) => {
-            const id = crypto.randomUUID();
-            createColumn({ id, boardId, title });
-            void broadcast({ type: "COLUMN_CREATED", payload: { id, boardId, title } });
-          }}
+          onAdd={(title) => createColumn({ boardId, title })}
         />
       )}
 
@@ -424,7 +435,6 @@ export default function BoardPage() {
           onClose={() => setActiveCardId(null)}
           onSave={(updates) => {
             editCard({ cardId: activeCard.id, updates });
-            void broadcast({ type: "CARD_EDITED", payload: { cardId: activeCard.id, updates } });
             setActiveCardId(null);
           }}
         />
@@ -438,6 +448,23 @@ export default function BoardPage() {
         />
       )}
 
+      {/* Dev-only performance testing utilities */}
+      {process.env.NODE_ENV === "development" && (
+        <div className="fixed bottom-4 right-4 flex gap-2 z-50">
+          <button
+            onClick={seedTestData}
+            className="bg-red-500 text-white text-xs px-3 py-1 rounded shadow"
+          >
+            Seed 210 cards
+          </button>
+          <button
+            onClick={clearTestData}
+            className="bg-gray-500 text-white text-xs px-3 py-1 rounded shadow"
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 }
