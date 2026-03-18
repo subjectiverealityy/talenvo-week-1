@@ -25,6 +25,37 @@ export type PersistedState = {
   commentReplyMap: Record<string, string[]>;   // commentId - reply ids
 };
 
+// RealtimeEvent defines the events that can be sent to other connected clients via Pusher. Each event carries the payload needed to apply the same mutation in receiving clients.
+export type RealtimeEvent =
+  | {
+      type: "CARD_CREATED";
+      payload: {
+        columnId: string;
+        title: string;
+        description?: string;
+        tags?: string[];
+        dueDate?: Date | null;
+      };
+    }
+  | {
+      type: "CARD_MOVED";
+      payload: {
+        cardId: string;
+        sourceColumnId: string;
+        destinationColumnId: string;
+        newIndex: number;
+      };
+    }
+  | {
+      type: "COMMENT_ADDED";
+      payload: {
+        cardId: string;
+        parentId: string | null;
+        author: string;
+        body: string;
+      };
+    };
+
 // Action defines every possible state mutation in the app as a discriminated union. Each action has a type (what happened) and a payload (the data needed to apply it). UNDO and REDO have no payload - they operate on the history log.
 export type Action =
   | { type: "CREATE_BOARD"; payload: { title: string; description: string } }

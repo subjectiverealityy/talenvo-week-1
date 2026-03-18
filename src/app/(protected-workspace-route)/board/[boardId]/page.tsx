@@ -10,6 +10,7 @@ import ColumnCard from "@/components/column/ColumnCard";
 import ColumnModal from "@/components/column/ColumnModal";
 import CardModal from "@/components/card/CardModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { useWebSocket, broadcast } from "@/app/hooks/useWebSocket";
 
 export default function BoardPage() {
   const params = useParams();
@@ -141,6 +142,8 @@ export default function BoardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  useWebSocket();
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -207,6 +210,11 @@ export default function BoardPage() {
       sourceColumnId,
       destinationColumnId,
       newIndex,
+    });
+
+    void broadcast({
+      type: "CARD_MOVED",
+      payload: { cardId: activeId, sourceColumnId, destinationColumnId, newIndex },
     });
 
     void updateCardPosition({
@@ -369,7 +377,10 @@ export default function BoardPage() {
                     cardIds={cardIds}
                     onEditColumn={editColumn}
                     onDeleteColumn={requestDeleteColumn}
-                    onCreateCard={createCard}
+                    onCreateCard={(payload) => {
+                      createCard(payload);
+                      void broadcast({ type: "CARD_CREATED", payload });
+                    }}                  
                     onOpenCard={setActiveCardId}
                     onDeleteCard={requestDeleteCard}
                   />

@@ -5,6 +5,7 @@ import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
 import { useAuthor } from "@/lib/useAuthor";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
+import { broadcast } from "@/app/hooks/useWebSocket";
 
 type CommentSectionProps = {
   cardId: string;
@@ -34,6 +35,7 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
       const resolvedAuthor = resolveAuthor();
       if (!resolvedAuthor) return;
       createComment({ cardId, parentId, author: resolvedAuthor, body });
+      void broadcast({ type: "COMMENT_ADDED", payload: { cardId, parentId, author: resolvedAuthor, body } });
     },
     [author, cardId, createComment]
   );
