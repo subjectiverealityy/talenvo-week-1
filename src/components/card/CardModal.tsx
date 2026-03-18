@@ -230,7 +230,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
               className="block w-full border border-gray-300 p-2 rounded text-sm"
             />
             <p className="text-xs text-gray-400 mt-1">
-              By clicking on the calendar, you can select a due date, or remove a due date by clicking 'Clear'.
+              By clicking on the calendar, you can select a due date, or remove a due date by clicking &apos;Clear&apos;.
             </p>
           </div>
         </div>

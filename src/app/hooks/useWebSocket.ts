@@ -61,6 +61,30 @@ export function useWebSocket() {
         case "COMMENT_ADDED":
           store.createComment(data.event.payload);
           break;
+        case "BOARD_EDITED":
+          store.editBoard(data.event.payload);
+          break;
+        case "COLUMN_CREATED":
+          store.createColumn(data.event.payload);
+          break;
+        case "COLUMN_EDITED":
+          store.editColumn(data.event.payload);
+          break;
+        case "COLUMN_DELETED":
+          store.deleteColumn(data.event.payload);
+          break;
+        case "CARD_EDITED":
+          store.editCard(data.event.payload);
+          break;
+        case "CARD_DELETED":
+          store.deleteCard(data.event.payload);
+          break;
+        case "COMMENT_EDITED":
+          store.editComment(data.event.payload);
+          break;
+        case "COMMENT_DELETED":
+          store.deleteComment(data.event.payload);
+          break;
       }
     });
 

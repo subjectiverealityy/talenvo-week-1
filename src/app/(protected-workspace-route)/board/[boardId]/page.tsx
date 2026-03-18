@@ -82,12 +82,14 @@ export default function BoardPage() {
   const handleTitleSave = useCallback(() => {
     if (editTitle.trim()) {
       editBoard({ boardId, updates: { title: editTitle.trim() } });
+      void broadcast({ type: "BOARD_EDITED", payload: { boardId, updates: { title: editTitle.trim() } } });
     }
     setIsEditingTitle(false);
   }, [editTitle, boardId, editBoard]);
 
   const handleDescriptionSave = useCallback(() => {
     editBoard({ boardId, updates: { description: editDescription.trim() } });
+    void broadcast({ type: "BOARD_EDITED", payload: { boardId, updates: { description: editDescription.trim() } } });
     setIsEditingDescription(false);
   }, [editDescription, boardId, editBoard]);
 
@@ -103,8 +105,10 @@ export default function BoardPage() {
     if (!pendingDelete) return;
     if (pendingDelete.type === "column") {
       deleteColumn({ columnId: pendingDelete.id });
+      void broadcast({ type: "COLUMN_DELETED", payload: { columnId: pendingDelete.id } });
     } else {
       deleteCard({ cardId: pendingDelete.id });
+      void broadcast({ type: "CARD_DELETED", payload: { cardId: pendingDelete.id } });
     }
     setPendingDelete(null);
   }, [deleteCard, deleteColumn, pendingDelete]);
@@ -364,7 +368,7 @@ export default function BoardPage() {
             aria-label="Board columns"
           >
             {columnIds.length === 0 ? (
-              <p className="text-sm text-gray-400">You haven't created any columns yet.</p>
+              <p className="text-sm text-gray-400">You haven&apos;t created any columns yet.</p>
             ) : (
               columnIds.map((colId) => {
                 const column = columnsById[colId];
@@ -375,11 +379,15 @@ export default function BoardPage() {
                     key={colId}
                     column={column}
                     cardIds={cardIds}
-                    onEditColumn={editColumn}
+                    onEditColumn={(payload) => {
+                      editColumn(payload);
+                      void broadcast({ type: "COLUMN_EDITED", payload });
+                    }}
                     onDeleteColumn={requestDeleteColumn}
                     onCreateCard={(payload) => {
-                      createCard(payload);
-                      void broadcast({ type: "CARD_CREATED", payload });
+                      const id = crypto.randomUUID();
+                      createCard({ id, ...payload });
+                      void broadcast({ type: "CARD_CREATED", payload: { id, ...payload } });
                     }}                  
                     onOpenCard={setActiveCardId}
                     onDeleteCard={requestDeleteCard}
@@ -402,7 +410,11 @@ export default function BoardPage() {
       {showColumnModal && (
         <ColumnModal
           onClose={() => setShowColumnModal(false)}
-          onAdd={(title) => createColumn({ boardId, title })}
+          onAdd={(title) => {
+            const id = crypto.randomUUID();
+            createColumn({ id, boardId, title });
+            void broadcast({ type: "COLUMN_CREATED", payload: { id, boardId, title } });
+          }}
         />
       )}
 
@@ -412,6 +424,7 @@ export default function BoardPage() {
           onClose={() => setActiveCardId(null)}
           onSave={(updates) => {
             editCard({ cardId: activeCard.id, updates });
+            void broadcast({ type: "CARD_EDITED", payload: { cardId: activeCard.id, updates } });
             setActiveCardId(null);
           }}
         />

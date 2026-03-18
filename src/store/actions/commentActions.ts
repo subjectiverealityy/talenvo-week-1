@@ -9,14 +9,14 @@ import type { Comment } from "@/types";
 
 export function createComment(
   state: PersistedState,
-  payload: { cardId: string; parentId: string | null; author: string; body: string }
+  payload: { id?: string; cardId: string; parentId: string | null; author: string; body: string }
 ): Partial<PersistedState> {
   const trimmedBody = payload.body.trim();
   if (!trimmedBody) return {};
   if (!state.cardsById[payload.cardId]) return {};
   if (payload.parentId && !state.commentsById[payload.parentId]) return {};
 
-  const newId = crypto.randomUUID();
+  const newId = payload.id ?? crypto.randomUUID();
 
   const newComment: Comment = {
     id: newId,

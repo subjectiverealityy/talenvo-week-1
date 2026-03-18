@@ -34,15 +34,17 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
     (body: string, parentId: string | null) => {
       const resolvedAuthor = resolveAuthor();
       if (!resolvedAuthor) return;
-      createComment({ cardId, parentId, author: resolvedAuthor, body });
-      void broadcast({ type: "COMMENT_ADDED", payload: { cardId, parentId, author: resolvedAuthor, body } });
+      const id = crypto.randomUUID();
+      createComment({ id, cardId, parentId, author: resolvedAuthor, body });
+      void broadcast({ type: "COMMENT_ADDED", payload: { id, cardId, parentId, author: resolvedAuthor, body } });
     },
-    [author, cardId, createComment]
+    [cardId, createComment, resolveAuthor]
   );
 
   const handleConfirmDelete = useCallback(() => {
     if (!pendingDeleteId) return;
     useStore.getState().deleteComment({ commentId: pendingDeleteId });
+    void broadcast({ type: "COMMENT_DELETED", payload: { commentId: pendingDeleteId } });
     setPendingDeleteId(null);
   }, [pendingDeleteId]);
 
@@ -122,7 +124,10 @@ const CommentThread = memo(function CommentThread({
   const editComment = useStore((state) => state.editComment);
 
   const onEdit = useCallback(
-    (body: string) => editComment({ commentId, body }),
+    (body: string) => {
+      editComment({ commentId, body });
+      void broadcast({ type: "COMMENT_EDITED", payload: { commentId, body } });
+    },
     [commentId, editComment]
   );
 
@@ -199,7 +204,10 @@ const ReplyItem = memo(function ReplyItem({
   const editComment = useStore((state) => state.editComment);
 
   const onEdit = useCallback(
-    (body: string) => editComment({ commentId: replyId, body }),
+    (body: string) => {
+      editComment({ commentId: replyId, body });
+      void broadcast({ type: "COMMENT_EDITED", payload: { commentId: replyId, body } });
+    },
     [replyId, editComment]
   );
 

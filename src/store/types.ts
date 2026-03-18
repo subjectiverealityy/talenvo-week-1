@@ -27,34 +27,17 @@ export type PersistedState = {
 
 // RealtimeEvent defines the events that can be sent to other connected clients via Pusher. Each event carries the payload needed to apply the same mutation in receiving clients.
 export type RealtimeEvent =
-  | {
-      type: "CARD_CREATED";
-      payload: {
-        columnId: string;
-        title: string;
-        description?: string;
-        tags?: string[];
-        dueDate?: Date | null;
-      };
-    }
-  | {
-      type: "CARD_MOVED";
-      payload: {
-        cardId: string;
-        sourceColumnId: string;
-        destinationColumnId: string;
-        newIndex: number;
-      };
-    }
-  | {
-      type: "COMMENT_ADDED";
-      payload: {
-        cardId: string;
-        parentId: string | null;
-        author: string;
-        body: string;
-      };
-    };
+  | { type: "CARD_CREATED"; payload: { id: string; columnId: string; title: string; description?: string; tags?: string[]; dueDate?: Date | null } }
+  | { type: "CARD_MOVED"; payload: { cardId: string; sourceColumnId: string; destinationColumnId: string; newIndex: number } }
+  | { type: "COMMENT_ADDED"; payload: { id: string; cardId: string; parentId: string | null; author: string; body: string } }
+  | { type: "BOARD_EDITED"; payload: { boardId: string; updates: Partial<Pick<Board, "title" | "description">> } }
+  | { type: "COLUMN_CREATED"; payload: { id: string; boardId: string; title: string } }
+  | { type: "COLUMN_EDITED"; payload: { columnId: string; title: string } }
+  | { type: "COLUMN_DELETED"; payload: { columnId: string } }
+  | { type: "CARD_EDITED"; payload: { cardId: string; updates: Partial<Omit<Card, "id" | "columnId">> } }
+  | { type: "CARD_DELETED"; payload: { cardId: string } }
+  | { type: "COMMENT_EDITED"; payload: { commentId: string; body: string } }
+  | { type: "COMMENT_DELETED"; payload: { commentId: string } };
 
 // Action defines every possible state mutation in the app as a discriminated union. Each action has a type (what happened) and a payload (the data needed to apply it). UNDO and REDO have no payload - they operate on the history log.
 export type Action =

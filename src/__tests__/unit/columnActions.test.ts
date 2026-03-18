@@ -10,6 +10,9 @@ const emptyState: PersistedState = {
   boardColumnMap: {},
   cardsById: {},
   columnCardMap: {},
+  commentsById: {},
+  cardCommentMap: {},
+  commentReplyMap: {},
 };
 
 // Creates a state with a single board that is ready to receive columns

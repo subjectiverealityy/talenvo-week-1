@@ -14,6 +14,7 @@ export function createCardSlice(
 ) {
   return {
     createCard: (payload: {
+      id?: string;
       columnId: string;
       title: string;
       description?: string;

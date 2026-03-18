@@ -10,6 +10,7 @@ import { deleteCardComments } from "@/store/actions/commentActions";
 export function createCard(
   state: PersistedState,
   payload: {
+    id?: string;
     columnId: string;
     title: string;
     description?: string;
@@ -23,7 +24,7 @@ export function createCard(
   // Guard against adding a card to a column that does not exist
   if (!state.columnsById[payload.columnId]) return {};
 
-  const newId = crypto.randomUUID();
+  const newId = payload.id ?? crypto.randomUUID();
 
   const createdCard: Card = {
     id: newId,

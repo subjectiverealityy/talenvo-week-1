@@ -11,7 +11,7 @@ export function createColumnSlice(
   get: () => PersistedState
 ) {
   return {
-    createColumn: (payload: { boardId: string; title: string }) =>
+    createColumn: (payload: { id?: string; boardId: string; title: string }) =>
       set(createColumn(get(), payload)),
 
     editColumn: (payload: { columnId: string; title: string }) =>

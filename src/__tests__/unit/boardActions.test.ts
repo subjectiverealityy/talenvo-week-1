@@ -9,6 +9,9 @@ const emptyState: PersistedState = {
   boardColumnMap: {},
   cardsById: {},
   columnCardMap: {},
+  commentsById: {},
+  cardCommentMap: {},
+  commentReplyMap: {},
 };
 
 describe("createBoard", () => {

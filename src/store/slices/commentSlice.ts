@@ -10,6 +10,7 @@ export function createCommentSlice(
 ) {
   return {
     createComment: (payload: {
+      id?: string;
       cardId: string;
       parentId: string | null;
       author: string;

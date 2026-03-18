@@ -9,7 +9,7 @@ import type { Column } from "@/types";
 
 export function createColumn(
   state: PersistedState,
-  payload: { boardId: string; title: string }
+  payload: { id?: string; boardId: string; title: string }
 ): Partial<PersistedState> {
   const trimmedTitle = payload.title.trim();
   if (!trimmedTitle) return {};
@@ -17,7 +17,7 @@ export function createColumn(
   // Guards against adding a column to a board that does not exist
   if (!state.boardsById[payload.boardId]) return {};
 
-  const newId = crypto.randomUUID();
+  const newId = payload.id ?? crypto.randomUUID();
 
   const createdColumn: Column = {
     id: newId,
