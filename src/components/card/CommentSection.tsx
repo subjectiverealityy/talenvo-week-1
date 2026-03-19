@@ -4,6 +4,7 @@ import { useState, useCallback, memo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
 import { useAuthor } from "@/lib/useAuthor";
+import AuthorModal from "@/components/ui/AuthorModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { broadcast } from "@/app/hooks/useWebSocket";
 
@@ -12,7 +13,13 @@ type CommentSectionProps = {
 };
 
 export default function CommentSection({ cardId }: CommentSectionProps) {
-  const { author, promptForAuthor } = useAuthor();
+  const {
+    author,
+    promptForAuthor,
+    showAuthorModal,
+    handleAuthorConfirm,
+    handleAuthorCancel,
+  } = useAuthor();
 
   const { cardCommentMap, createComment } = useStore(
     useShallow((state) => ({
@@ -25,20 +32,22 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
 
   const topLevelIds = cardCommentMap[cardId] ?? [];
 
-  function resolveAuthor(): string | null {
+  // Resolves the author — returns existing author or opens the modal.
+  // Returns null if the user cancelled the modal.
+  async function resolveAuthor(): Promise<string | null> {
     if (author) return author;
     return promptForAuthor();
   }
 
   const handleSubmitComment = useCallback(
-    (body: string, parentId: string | null) => {
-      const resolvedAuthor = resolveAuthor();
+    async (body: string, parentId: string | null) => {
+      const resolvedAuthor = await resolveAuthor();
       if (!resolvedAuthor) return;
       const id = crypto.randomUUID();
       createComment({ id, cardId, parentId, author: resolvedAuthor, body });
       void broadcast({ type: "COMMENT_ADDED", payload: { id, cardId, parentId, author: resolvedAuthor, body } });
     },
-    [cardId, createComment, resolveAuthor]
+    [cardId, createComment, author]
   );
 
   const handleConfirmDelete = useCallback(() => {
@@ -92,6 +101,13 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
         </p>
       )}
 
+      {showAuthorModal && (
+        <AuthorModal
+          onConfirm={handleAuthorConfirm}
+          onCancel={handleAuthorCancel}
+        />
+      )}
+
       {pendingDeleteId && (
         <ConfirmDeleteModal
           onCancel={() => setPendingDeleteId(null)}
@@ -119,9 +135,8 @@ const CommentThread = memo(function CommentThread({
 }: CommentThreadProps) {
   const [showReplyInput, setShowReplyInput] = useState(false);
 
-  const comment = useStore((state) => state.commentsById[commentId]);
-  const replyIds = useStore((state) => state.commentReplyMap[commentId] ?? []);
   const editComment = useStore((state) => state.editComment);
+  const replyIds = useStore((state) => state.commentReplyMap[commentId] ?? []);
 
   const onEdit = useCallback(
     (body: string) => {
@@ -135,8 +150,6 @@ const CommentThread = memo(function CommentThread({
     () => onRequestDelete(commentId),
     [commentId, onRequestDelete]
   );
-
-  if (!comment) return null;
 
   return (
     <li>
@@ -228,7 +241,7 @@ const ReplyItem = memo(function ReplyItem({
   );
 });
 
-// Comment Item
+// Comment Item 
 type CommentItemProps = {
   commentId: string;
   currentAuthor: string;
@@ -243,7 +256,6 @@ const CommentItem = memo(function CommentItem({
   onDelete,
 }: CommentItemProps) {
   const comment = useStore((state) => state.commentsById[commentId]);
-
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState("");
 
