@@ -28,7 +28,7 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
     if (!card.dueDate) return false;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const due = card.dueDate;
+    const due = new Date(card.dueDate.getTime());
     due.setHours(0, 0, 0, 0);
     return due < today;
   })();
