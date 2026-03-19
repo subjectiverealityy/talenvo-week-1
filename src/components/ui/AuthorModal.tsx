@@ -73,7 +73,7 @@ export default function AuthorModal({ onConfirm, onCancel }: AuthorModalProps) {
           What name would you like to comment with?
         </h2>
         <p className="text-sm text-gray-500 mb-4">
-          This will be shown on all your comments.
+          It will be shown on all your comments.
         </p>
 
         <div className="mb-4">
