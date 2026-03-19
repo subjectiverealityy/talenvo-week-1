@@ -33,10 +33,37 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
     card.dueDate ? formatDateInput(card.dueDate) : ""
   );
   const [titleError, setTitleError] = useState("");
+  const [showUnsavedPrompt, setShowUnsavedPrompt] = useState(false);
 
   const overlayRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Check if the user has made changes.
+  function hasChanges(): boolean {
+    const currentDescription = isEditingDescription ? draftDescription : description;
+    const parsedTags = tagsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+    const originalDueDate = card.dueDate ? formatDateInput(card.dueDate) : "";
+
+    return (
+      title.trim() !== card.title ||
+      currentDescription !== card.description ||
+      parsedTags.join(", ") !== card.tags.join(", ") ||
+      dueDate !== originalDueDate
+    );
+  }
+
+  // This checks for unsaved changes before closing.
+  function requestClose() {
+    if (hasChanges()) {
+      setShowUnsavedPrompt(true);
+    } else {
+      onClose();
+    }
+  }
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement;
@@ -46,11 +73,18 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
 
   useEffect(() => {
     function handleKeyDown(e: globalThis.KeyboardEvent) {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        // If the unsaved prompt is currently showing, Escape dismisses it and keeps the modal open rather than closing the modal entirely.
+        if (showUnsavedPrompt) {
+          setShowUnsavedPrompt(false);
+        } else {
+          requestClose();
+        }
+      }
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+  }, [showUnsavedPrompt, title, description, draftDescription, tagsInput, dueDate, isEditingDescription]);
 
   useEffect(() => {
     if (isEditingDescription) {
@@ -105,7 +139,6 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       .map((t: string) => t.trim())
       .filter((tag) => tag.length > 0);
 
-    // Use draftDescription if the the user's description box is still on 'edit mode' when they click the 'Save' button (i.e. if isEditingDescription is true).
     const finalDescription = isEditingDescription ? draftDescription : description;
 
     onSave({
@@ -114,6 +147,10 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       tags: parsedTags,
       dueDate: dueDate ? new Date(`${dueDate}T00:00:00`) : null,
     });
+  }
+
+  function handleSaveAndClose() {
+    handleSave();
   }
 
   return (
@@ -133,7 +170,7 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           <button
             ref={closeButtonRef}
             onMouseDown={(e) => e.preventDefault()}
-            onClick={onClose}
+            onClick={requestClose}
             aria-label="Close modal"
             className="text-gray-400 hover:text-gray-700 text-sm px-1"
           >
@@ -240,10 +277,10 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           <CommentSection cardId={card.id} />
         </div>
 
-        <footer className="flex justify-end gap-2 px-6 pb-6">
+        <footer className="flex justify-end gap-2 px-6 pb-6 pt-4">
           <button
             onMouseDown={(e) => e.preventDefault()}
-            onClick={onClose}
+            onClick={requestClose}
             className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:border-gray-500"
           >
             Cancel
@@ -257,6 +294,41 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           </button>
         </footer>
       </div>
+
+      {/* Unsaved changes prompt */}
+      {showUnsavedPrompt && (
+        <div
+          className="fixed inset-0 bg-black/20 flex items-center justify-center z-60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="unsaved-prompt-title"
+        >
+          <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
+            <h3 id="unsaved-prompt-title" className="text-base font-semibold mb-2">
+              You have unsaved changes
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Do you want to save your changes before closing?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded hover:border-gray-500"
+              >
+                Don&apos;t save
+              </button>
+              <button
+                autoFocus
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleSaveAndClose}
+                className="px-4 py-2 text-sm bg-gray-800 text-white rounded hover:bg-gray-700"
+              >
+                Save changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
