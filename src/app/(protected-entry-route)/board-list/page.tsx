@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
@@ -48,6 +48,15 @@ export default function EntryRoute() {
     deleteBoard({ boardId: pendingBoardDeleteId });
     setPendingBoardDeleteId(null);
   }, [deleteBoard, pendingBoardDeleteId]);
+
+  // Current workaround for empty state flash on board list load, pending fetching board data from a database on the server.
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) return null;
 
   return (
     <main className="p-16 max-w-xl mx-auto">
