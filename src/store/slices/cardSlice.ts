@@ -38,7 +38,7 @@ export function createCardSlice(
         payload: {
           card: createdCard,
           columnId: payload.columnId,
-          index: Math.max(0, columnCards.length - 1),
+          index: columnCards.length - 1,
         },
       };
       nextState.pushHistory(action);
