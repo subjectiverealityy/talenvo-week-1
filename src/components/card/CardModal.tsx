@@ -163,8 +163,8 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
       aria-labelledby="card-modal-title"
       onKeyDown={trapFocus}
     >
-      <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl flex flex-col">
-        <header className="flex items-center justify-between p-6 pb-0">
+      <div className="bg-white rounded-lg w-full max-w-lg max-h-[90vh] shadow-xl flex flex-col">
+        <header className="flex items-center justify-between p-6 pb-4 shrink-0 border-b border-gray-100">
           <h2 id="card-modal-title" className="text-base font-semibold">
             Edit Card
           </h2>
@@ -179,114 +179,116 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
           </button>
         </header>
 
-        <div className="p-6 flex flex-col gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <label htmlFor="card-title" className="text-sm font-medium">
-                Title
-              </label>
-              {titleError && (
-                <span id="card-title-error" role="alert" className="text-red-500 text-xs">
-                  {titleError}
-                </span>
+        <div className="overflow-y-auto flex-1">
+          <div className="p-6 flex flex-col gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <label htmlFor="card-title" className="text-sm font-medium">
+                  Title
+                </label>
+                {titleError && (
+                  <span id="card-title-error" role="alert" className="text-red-500 text-xs">
+                    {titleError}
+                  </span>
+                )}
+              </div>
+              <input
+                id="card-title"
+                type="text"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (titleError) setTitleError("");
+                }}
+                aria-describedby={titleError ? "card-title-error" : undefined}
+                aria-invalid={!!titleError}
+                className={`block w-full border p-2 rounded text-sm ${
+                  titleError ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium block mb-1">Description</label>
+
+              {isEditingDescription ? (
+                <textarea
+                  ref={textareaRef}
+                  value={draftDescription}
+                  onChange={(e) => setDraftDescription(e.target.value)}
+                  onBlur={handleDescriptionBlur}
+                  placeholder="You can use *...* for italics and **...** for bold."
+                  className="min-h-20 h-auto block w-full border border-gray-300 p-2 rounded text-sm resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-gray-400"
+                  aria-label="Card description editor"
+                />
+              ) : (
+                <div
+                  onClick={handleDescriptionEdit}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleDescriptionEdit();
+                    }
+                  }}
+                  className="min-h-20 h-auto border border-gray-200 rounded p-2 text-sm text-gray-700 whitespace-pre-wrap wrap-break-word cursor-text hover:border-gray-400 transition-colors"
+                  aria-label="Click to edit description"
+                  dangerouslySetInnerHTML={{
+                    __html: description
+                      ? parseMarkdown(description)
+                      : "<p class='text-gray-400'>Click to add a description (markdown is supported).</p>",
+                  }}
+                />
               )}
             </div>
-            <input
-              id="card-title"
-              type="text"
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (titleError) setTitleError("");
-              }}
-              aria-describedby={titleError ? "card-title-error" : undefined}
-              aria-invalid={!!titleError}
-              className={`block w-full border p-2 rounded text-sm ${
-                titleError ? "border-red-500" : "border-gray-300"
-              }`}
-            />
-          </div>
 
-          <div>
-            <label className="text-sm font-medium block mb-1">Description</label>
-
-            {isEditingDescription ? (
-              <textarea
-                ref={textareaRef}
-                value={draftDescription}
-                onChange={(e) => setDraftDescription(e.target.value)}
-                onBlur={handleDescriptionBlur}
-                placeholder="You can use *...* for italics and **...** for bold."
-                className="min-h-20 h-auto block w-full border border-gray-300 p-2 rounded text-sm resize-none overflow-hidden focus:outline-none focus:ring-2 focus:ring-gray-400"
-                aria-label="Card description editor"
+            <div>
+              <label htmlFor="card-tags" className="text-sm font-medium block mb-1">
+                Tags
+              </label>
+              <input
+                id="card-tags"
+                type="text"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                placeholder="separate tags with a comma e.g. school project, to-do, idea"
+                className="block w-full border border-gray-300 p-2 rounded text-sm"
               />
-            ) : (
-              <div
-                onClick={handleDescriptionEdit}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleDescriptionEdit();
-                  }
-                }}
-                className="min-h-20 h-auto border border-gray-200 rounded p-2 text-sm text-gray-700 whitespace-pre-wrap wrap-break-word cursor-text hover:border-gray-400 transition-colors"
-                aria-label="Click to edit description"
-                dangerouslySetInnerHTML={{
-                  __html: description
-                    ? parseMarkdown(description)
-                    : "<p class='text-gray-400'>Click to add a description (markdown is supported).</p>",
-                }}
+            </div>
+
+            <div>
+              <label htmlFor="card-due-date" className="text-sm font-medium block mb-1">
+                Due date
+              </label>
+              <input
+                id="card-due-date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="block w-full border border-gray-300 p-2 rounded text-sm"
               />
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="card-tags" className="text-sm font-medium block mb-1">
-              Tags
-            </label>
-            <input
-              id="card-tags"
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="separate tags with a comma e.g. school project, to-do, idea"
-              className="block w-full border border-gray-300 p-2 rounded text-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="card-due-date" className="text-sm font-medium block mb-1">
-              Due date
-            </label>
-            <input
-              id="card-due-date"
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="block w-full border border-gray-300 p-2 rounded text-sm"
-            />
-            <p className="text-xs text-gray-400 mt-1">
-              By clicking on the calendar, you can select a due date, or remove a due date by clicking &apos;Clear&apos;.
-            </p>
-          </div>
-        </div>
-
-        <div className="px-6 pb-2">
-          <hr className="border-gray-100 mb-4" />
-          <ErrorBoundary
-            fallback={
-              <p className="text-xs text-gray-400 py-2">
-                Comments failed to load. Try closing and reopening this modal.
+              <p className="text-xs text-gray-400 mt-1">
+                By clicking on the calendar, you can select a due date, or remove a due date by clicking &apos;Clear&apos;.
               </p>
-            }
-          >
-            <CommentSection cardId={card.id} />
-          </ErrorBoundary>        
+            </div>
+          </div>
+
+          <div className="px-6 pb-4">
+            <hr className="border-gray-100 mb-4" />
+            <ErrorBoundary
+              fallback={
+                <p className="text-xs text-gray-400 py-2">
+                  Comments failed to load. Try closing and reopening this modal.
+                </p>
+              }
+            >
+              <CommentSection cardId={card.id} />
+            </ErrorBoundary>
+          </div>
         </div>
 
-        <footer className="flex justify-end gap-2 px-6 pb-6 pt-4">
+        <footer className="flex justify-end gap-2 px-6 py-4 border-t border-gray-100 bg-white shrink-0">
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={requestClose}

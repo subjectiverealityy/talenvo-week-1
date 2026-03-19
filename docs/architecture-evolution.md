@@ -135,6 +135,30 @@ The command pattern was not just the best choice — it was the only one of the 
 
 Replace localStorage with Supabase (managed PostgreSQL with a JavaScript client and real-time subscriptions built in). This would: eliminate the hydration flash on page reload, enable true SSR with Next.js Server Components, make real-time work across different browsers and devices with shared initial state, and remove the entire localStorage limitation class of problems. Only `store.ts`'s persist configuration and the WebSocket layer would change.
 
+**Card modal URL routing**
+
+The card modal currently opens as an overlay managed by `activeCardId` in the 
+Zustand store. The production pattern is a dynamic route — 
+`/board/[boardId]/card/[cardId]` — so that open cards are linkable, 
+shareable, and survive page reloads. Next.js App Router's parallel routes 
+(`@modal` slot) would keep the board visible underneath the card while 
+maintaining a real URL. This was not implemented because the app has no 
+server-side database — a shared URL would silently fail for any user whose 
+localStorage doesn't contain the board. The correct implementation order is: 
+database first, URL-based card routing second.
+
+**Card edit persistence**
+
+Card edits are currently buffered in local component state until the user 
+clicks Save. If the page is reloaded before saving, edits are lost. The two 
+production approaches are autosave (write to the store on every change, remove 
+the Save button — as Notion does) or draft persistence (save in-progress edits 
+to a separate draft key in the store, restore on reload with a "You have 
+unsaved changes" prompt). Autosave was not chosen because it conflicts with 
+the deliberate Save/Cancel flow and unsaved changes prompt already built. 
+Draft persistence was not chosen due to the implementation complexity relative 
+to the submission deadline.
+
 **Week 2 — Authentication and proper user identity**
 
 Build a real signup/login flow (the routes already exist as placeholders). With real user accounts: author names on comments would be resolved dynamically from a user ID rather than stored as strings; real-time events would carry a proper sender identity rather than a tab UUID; board access control (private vs shared boards) becomes possible.
