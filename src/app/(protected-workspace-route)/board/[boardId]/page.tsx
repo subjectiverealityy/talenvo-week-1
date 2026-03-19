@@ -401,7 +401,7 @@ export default function BoardPage() {
       >
         <div className="flex-1 overflow-hidden">
           <div
-            className="flex gap-4 p-6 h-full overflow-x-auto items-start"
+            className="flex gap-4 p-6 h-full overflow-x-auto items-start touch-none"
             role="region"
             aria-label="Board columns"
           >
