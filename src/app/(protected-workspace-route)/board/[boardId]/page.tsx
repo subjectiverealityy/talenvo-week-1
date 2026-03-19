@@ -258,7 +258,7 @@ export default function BoardPage() {
         store.createCard({
           columnId: colId,
           title: `Card ${c + 1}-${k + 1}`,
-          description: k % 2 === 0 ? "Some **markdown** description" : undefined,
+          description: k % 2 === 0 ? "**markdown** description" : undefined,
           tags: k % 3 === 0 ? ["tag1", "tag2"] : [],
         });
       }
