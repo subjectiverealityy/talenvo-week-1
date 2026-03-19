@@ -39,11 +39,11 @@ const CardItem = memo(function CardItem({ card, onOpen, onDelete }: CardItemProp
   }
 
   return (
-    <li ref={setNodeRef} style={style}>
+    <li ref={setNodeRef} style={style} className="touch-none">
       <article
         {...attributes}
         {...listeners}
-        className="bg-white border border-gray-200 rounded p-3 cursor-pointer hover:shadow-sm transition-shadow touch-none"
+        className="bg-white border border-gray-200 rounded p-3 cursor-pointer hover:shadow-sm transition-shadow"
         onClick={() => onOpen(card.id)}
         tabIndex={0}
         role="button"
