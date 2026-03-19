@@ -7,7 +7,7 @@
 // - Pusher delivers the event to all other connected clients
 // - Receiving clients apply the event to their local store (reconciliation)
 
-// Conflict strategy: last-write-wins. The most recently received event is applied directly. In a production system with stronger consistency requirements, vector clocks or operational transforms would be used.
+// Conflict strategy: last-write-wins. The most recently received event is applied directly.
 
 // To swap Pusher for another WebSocket provider (e.g. Supabase Realtime, Ably):
 // - Replace PusherJS subscription with the provider's client SDK
@@ -21,7 +21,8 @@ import type { RealtimeEvent } from "@/store/types";
 
 const CHANNEL_NAME = "board-realtime";
 const EVENT_NAME = "board-update";
-// Unique per-tab ID to prevent a tab from applying its own broadcast
+
+// Unique per-tab ID to prevent a tab from applying its own broadcast.
 const TAB_ID = crypto.randomUUID();
 
 let pusherClient: PusherClient | null = null;
@@ -44,7 +45,7 @@ export function useWebSocket() {
     channelRef.current = channel;
 
     channel.bind(EVENT_NAME, (data: { tabId: string; event: RealtimeEvent }) => {
-      // Ignore events sent by this tab
+      // Ignore events sent by this tab.
       if (data.tabId === TAB_ID) return;
 
       const store = useStore.getState();
@@ -93,12 +94,14 @@ export function useWebSocket() {
       client.unsubscribe(CHANNEL_NAME);
       channelRef.current = null;
 
-      // Disconnect and clear the singleton client on unmount so that a fresh connection is created on the next mount. This prevents stale connections accumulating during hot reload in development.
-      try {
-        client.disconnect();
-        pusherClient = null;
-      } catch {
-        // ignore
+      // Disconnect and clear the singleton client on unmount so that a fresh connection is created on the next mount. This prevents stale connections accumulating during hot reload in development. Keep the singleton alive in production so that navigating back to a board reuses the existing Pusher connection and load times stay fast.
+      if (process.env.NODE_ENV === "development") {
+        try {
+          client.disconnect();
+          pusherClient = null;
+        } catch {
+          // ignore
+        }
       }
     };
   }, []);
@@ -106,7 +109,7 @@ export function useWebSocket() {
   return channelRef;
 }
 
-// Broadcast an event to all other clients via Pusher (called after local state has already been updated - optimistic UI pattern).
+// Broadcast an event to all other clients via Pusher (called after local state has already been updated — optimistic UI pattern).
 export async function broadcast(event: RealtimeEvent): Promise<void> {
   try {
     await fetch("/api/pusher", {
