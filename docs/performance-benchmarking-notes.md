@@ -26,6 +26,15 @@ With `memo()` on `CardItem` and `ColumnCard`, and `useShallow` on multi-value Zu
 
 ---
 
+### Profiler Screenshots
+
+![Card modal opened](../assets/card-modal-opened.png)
+![Comment added](../assets/comment-added.png)
+![Reply added](../assets/reply-added.png)
+![Reply added — with details](../assets/reply-added-details.png)
+
+---
+
 ## Card Modal Performance
 
 Opening the card modal takes two commits:
