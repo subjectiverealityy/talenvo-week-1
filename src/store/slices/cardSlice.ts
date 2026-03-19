@@ -7,6 +7,7 @@ import type { PersistedState } from "@/store/types";
 import type { Card } from "@/types";
 import type { HistoryAction, HistorySlice } from "@/store/slices/historySlice";
 import { createCard, editCard, deleteCard, moveCard } from "@/store/actions/cardActions";
+import { isEmpty } from "@/lib/utils";
 
 export function createCardSlice(
   set: (partial: Partial<PersistedState & HistorySlice>) => void,
@@ -99,10 +100,6 @@ export function createCardSlice(
       state.pushHistory(action);
     },
   };
-}
-
-function isEmpty(obj: object): boolean {
-  return Object.keys(obj).length === 0;
 }
 
 export type CardSlice = ReturnType<typeof createCardSlice>;
