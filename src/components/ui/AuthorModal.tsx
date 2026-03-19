@@ -70,7 +70,7 @@ export default function AuthorModal({ onConfirm, onCancel }: AuthorModalProps) {
     >
       <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
         <h2 id="author-modal-title" className="text-base font-semibold mb-1">
-          What name would you like to comment as?
+          What name would you like to comment with?
         </h2>
         <p className="text-sm text-gray-500 mb-4">
           This will be shown on all your comments.
@@ -99,7 +99,7 @@ export default function AuthorModal({ onConfirm, onCancel }: AuthorModalProps) {
             onKeyDown={(e) => {
               if (e.key === "Enter") handleConfirm();
             }}
-            placeholder="e.g. Alex, Design Team, Anonymous"
+            placeholder=""
             aria-describedby={error ? "author-name-error" : undefined}
             aria-invalid={!!error}
             className={`block w-full border p-2 rounded text-sm ${
