@@ -1,14 +1,11 @@
 # Architecture Evolution Document
-## BoardList — Talenvo Stage 2
-**Author:** Ogechukwu Onuora  
-**Date:** March 2026  
-**Stage 1 Score:** 75/100
+## From Talenvo Stage 1 to Talenvo Stage 2 (Frontend Development Track)
 
 ---
 
 ## Overview
 
-This document covers the architectural decisions made during Stage 2, what broke when complexity increased, what changed in the state structure, known technical debt, and how the system would scale to 10,000 users. It also includes a tradeoff analysis of the DnD approach and performance benchmarking notes.
+This document covers the architectural decisions made during Stage 2 of the Talenvo Global Residency - what broke when complexity increased, what changed in the state structure, known technical debt, and how the system would scale to 10,000 users. It also includes performance benchmarking notes from the performance stress test.
 
 ---
 
