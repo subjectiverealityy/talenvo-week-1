@@ -11,11 +11,14 @@ import ColumnModal from "@/components/column/ColumnModal";
 import CardModal from "@/components/card/CardModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { useWebSocket, broadcast } from "@/app/hooks/useWebSocket";
+import { useToast } from "@/context/ToastContext";
 
 export default function BoardPage() {
   const params = useParams();
   const router = useRouter();
   const boardId = params.boardId as string;
+
+  const { toast } = useToast();
 
   const {
     boardsById,
@@ -92,21 +95,23 @@ export default function BoardPage() {
 
   const requestDeleteColumn = useCallback((payload: { columnId: string }) => {
     setPendingDelete({ type: "column", id: payload.columnId });
-  }, [setPendingDelete]);
+  }, []);
 
   const requestDeleteCard = useCallback((payload: { cardId: string }) => {
     setPendingDelete({ type: "card", id: payload.cardId });
-  }, [setPendingDelete]);
+  }, []);
 
   const handleConfirmDelete = useCallback(() => {
     if (!pendingDelete) return;
     if (pendingDelete.type === "column") {
       deleteColumn({ columnId: pendingDelete.id });
+      toast.success("Column deleted");
     } else {
       deleteCard({ cardId: pendingDelete.id });
+      toast.success("Card deleted");
     }
     setPendingDelete(null);
-  }, [deleteCard, deleteColumn, pendingDelete]);
+  }, [deleteCard, deleteColumn, pendingDelete, toast]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     const target = event.target as HTMLElement | null;
@@ -179,16 +184,16 @@ export default function BoardPage() {
     let newIndex = 0;
 
     const overData = over.data.current as { type?: string; columnId?: string } | undefined;
-    if (overData?.type === "column") {
-      destinationColumnId = over.id as string;
-      const destinationCards = columnCardMap[destinationColumnId] ?? [];
+    destinationColumnId = overData?.columnId ?? sourceColumnId;
+    const destinationCards = columnCardMap[destinationColumnId] ?? [];
+    const overIndex = destinationCards.indexOf(over.id as string);
+
+    // If overIndex is -1, the drop target wasn't a recognised card in this column
+    // (e.g. dropped into a new column but not directly over a card) — append to end.
+    if (overIndex === -1) {
       newIndex = destinationCards.length;
     } else {
-      destinationColumnId = overData?.columnId ?? sourceColumnId;
-      const destinationCards = columnCardMap[destinationColumnId] ?? [];
-      const overIndex = destinationCards.indexOf(over.id as string);
-      newIndex = overIndex === -1 ? destinationCards.length : overIndex;
-
+      newIndex = overIndex;
       if (sourceColumnId === destinationColumnId) {
         const activeIndex = destinationCards.indexOf(activeId);
         if (activeIndex !== -1 && activeIndex < newIndex) {
@@ -222,11 +227,15 @@ export default function BoardPage() {
       destinationColumnId,
       newIndex,
     }).catch((error) => {
-      console.error("Failed to persist card move", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to persist card move", error);
+      }
+      // In production this would be: Sentry.captureException(error)
+      toast.error("Failed to move card");
     });
 
     setActiveDragCardId(null);
-  }, [columnCardMap, moveCard]);
+  }, [columnCardMap, moveCard, toast]);
 
   function startEditTitle() {
     setEditTitle(board?.title ?? "");
@@ -240,7 +249,7 @@ export default function BoardPage() {
     setTimeout(() => descriptionInputRef.current?.focus(), 0);
   }
 
-   // Dev-only performance testing utilities
+  // Dev-only performance testing utilities
   function seedTestData() {
     const store = useStore.getState();
     for (let c = 0; c < 21; c++) {
@@ -395,7 +404,7 @@ export default function BoardPage() {
             aria-label="Board columns"
           >
             {columnIds.length === 0 ? (
-              <p className="text-sm text-gray-400">You haven't created any columns yet.</p>
+              <p className="text-sm text-gray-400">You haven&apos;t created any columns yet.</p>
             ) : (
               columnIds.map((colId) => {
                 const column = columnsById[colId];
@@ -411,6 +420,7 @@ export default function BoardPage() {
                     onCreateCard={(payload) => {
                       const id = crypto.randomUUID();
                       createCard({ ...payload, id });
+                      toast.success("Card created");
                       void broadcast({ type: "CARD_CREATED", payload: { ...payload, id } });
                     }}
                     onOpenCard={setActiveCardId}
@@ -434,7 +444,10 @@ export default function BoardPage() {
       {showColumnModal && (
         <ColumnModal
           onClose={() => setShowColumnModal(false)}
-          onAdd={(title) => createColumn({ boardId, title })}
+          onAdd={(title) => {
+            createColumn({ boardId, title });
+            toast.success("Column created");
+          }}
         />
       )}
 
@@ -444,6 +457,7 @@ export default function BoardPage() {
           onClose={() => setActiveCardId(null)}
           onSave={(updates) => {
             editCard({ cardId: activeCard.id, updates });
+            toast.success("Card saved");
             setActiveCardId(null);
           }}
         />

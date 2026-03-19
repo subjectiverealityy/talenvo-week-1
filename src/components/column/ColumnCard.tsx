@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, memo } from "react";
-import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useShallow } from "zustand/shallow";
 import type { Column } from "@/types";
@@ -31,10 +30,6 @@ export default memo(function ColumnCard({
     useShallow((state) => cardIds.map((cardId) => state.cardsById[cardId]))
   );
 
-  const { setNodeRef, isOver } = useDroppable({
-    id: column.id,
-    data: { type: "column" },
-  });
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
   const [isAddingCard, setIsAddingCard] = useState(false);
@@ -46,7 +41,6 @@ export default memo(function ColumnCard({
     if (editTitle.trim()) {
       onEditColumn({ columnId: column.id, title: editTitle });
     } else {
-      // Revert to the original title if the input field is empty.
       setEditTitle(column.title);
     }
     setIsEditingTitle(false);
@@ -74,8 +68,7 @@ export default memo(function ColumnCard({
 
   return (
     <section
-      ref={setNodeRef}
-      className={`bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto ${isOver ? "ring-2 ring-gray-300" : ""}`}
+      className="bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto"
       aria-label={`Column: ${column.title}`}
     >
       <header className="flex items-center justify-between gap-2">
