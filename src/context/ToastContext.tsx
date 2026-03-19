@@ -54,7 +54,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* Toast container — fixed bottom-right, stacks upward */}
       <div
         aria-label="Notifications"
-        className="fixed bottom-6 right-6 z-[100] flex flex-col-reverse gap-2 items-end"
+        className="fixed bottom-6 right-6 z-100 flex flex-col-reverse gap-2 items-end"
       >
         {toasts.map((t) => (
           <ToastItem key={t.id} toast={t} onDismiss={dismiss} />

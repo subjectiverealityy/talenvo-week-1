@@ -230,7 +230,6 @@ export default function BoardPage() {
       if (process.env.NODE_ENV === "development") {
         console.error("Failed to persist card move", error);
       }
-      // In production this would be: Sentry.captureException(error)
       toast.error("Failed to move card");
     });
 

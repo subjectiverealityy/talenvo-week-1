@@ -9,6 +9,7 @@ import {
 import type { Card } from "@/types";
 import { parseMarkdown } from "@/lib/markdown";
 import CommentSection from "@/components/card/CommentSection";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 type CardModalProps = {
   card: Card;
@@ -274,7 +275,15 @@ export default function CardModal({ card, onClose, onSave }: CardModalProps) {
 
         <div className="px-6 pb-2">
           <hr className="border-gray-100 mb-4" />
-          <CommentSection cardId={card.id} />
+          <ErrorBoundary
+            fallback={
+              <p className="text-xs text-gray-400 py-2">
+                Comments failed to load. Try closing and reopening this modal.
+              </p>
+            }
+          >
+            <CommentSection cardId={card.id} />
+          </ErrorBoundary>        
         </div>
 
         <footer className="flex justify-end gap-2 px-6 pb-6 pt-4">
