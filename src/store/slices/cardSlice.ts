@@ -20,10 +20,13 @@ export function createCardSlice(
       description?: string;
       tags?: string[];
       dueDate?: Date | null;
+      // skipHistory becomes true when the action originates from a remote WebSocket event - remote actions should not push to the local undo history, otherwise a user could undo another user's action.
+      skipHistory?: boolean;
     }) => {
       const updates = createCard(get(), payload);
       if (isEmpty(updates)) return;
       set(updates);
+      if (payload.skipHistory) return;
       const nextState = get();
       const columnCards = nextState.columnCardMap[payload.columnId] ?? [];
       const newCardId = columnCards[columnCards.length - 1];
@@ -71,6 +74,10 @@ export function createCardSlice(
       sourceColumnId: string;
       destinationColumnId: string;
       newIndex: number;
+      // skipHistory: true when the action originates from a remote WebSocket event.
+      // Remote actions must not push to the local undo history — otherwise a user
+      // could undo another user's action.
+      skipHistory?: boolean;
     }) => {
       const state = get();
       const fromColumnCards = state.columnCardMap[payload.sourceColumnId] ?? [];
@@ -78,6 +85,7 @@ export function createCardSlice(
       const updates = moveCard(state, payload);
       if (isEmpty(updates)) return;
       set(updates);
+      if (payload.skipHistory) return;
       const action: HistoryAction = {
         type: "MOVE_CARD",
         payload: {

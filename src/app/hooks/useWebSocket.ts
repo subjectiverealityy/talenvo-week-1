@@ -52,12 +52,13 @@ export function useWebSocket() {
 
       // Reconciliation — apply incoming events from other clients to local state.
       // Last-write-wins: the most recently received event is applied directly.
+      // skipHistory becomes true on card mutations so that remote actions do not pollute the local undo stack i.e. so a user can not undo another user's action.
       switch (data.event.type) {
         case "CARD_CREATED":
-          store.createCard(data.event.payload);
+          store.createCard({ ...data.event.payload, skipHistory: true });
           break;
         case "CARD_MOVED":
-          store.moveCard(data.event.payload);
+          store.moveCard({ ...data.event.payload, skipHistory: true });
           break;
         case "COMMENT_ADDED":
           store.createComment(data.event.payload);
