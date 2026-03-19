@@ -263,6 +263,15 @@ export default function BoardPage() {
     colIds.forEach((colId) => store.deleteColumn({ columnId: colId }));
   }
 
+  // Current workaround for 404 page flashing on page reload, pending fetching board data from a database on the server.
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) return null; // loading.tsx shows instead
+
   if (!board) {
     return (
       <div className="h-screen flex flex-col">
