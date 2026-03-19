@@ -16,19 +16,39 @@ export default function CreateBoardModal({ onClose, onCreate }: CreateBoardModal
   const overlayRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-focus title input
   useEffect(() => {
     titleInputRef.current?.focus();
   }, []);
 
+  // Close modal when Escape key is pressed
   useEffect(() => {
-    function handleKeyDown(e: globalThis.KeyboardEvent) {
+    const handleEsc = (e: globalThis.KeyboardEvent) => {
       if (e.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  function trapFocus(e: KeyboardEvent<HTMLDivElement>) {
+  function handleSubmit() {
+    if (!title.trim()) {
+      setTitleError("Oops! You can't create a board without a title.");
+      titleInputRef.current?.focus();
+      return;
+    }
+    onCreate(title.trim(), description.trim());
+    onClose();
+  }
+
+  // Handles Tab focus trap and Enter key triggering submit
+  function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // Enter triggers submit
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+
+    // Focus trap for Tab
     if (e.key !== "Tab" || !overlayRef.current) return;
     const focusable = overlayRef.current.querySelectorAll<HTMLElement>(
       'button, input, [tabindex]:not([tabindex="-1"])'
@@ -49,16 +69,6 @@ export default function CreateBoardModal({ onClose, onCreate }: CreateBoardModal
     }
   }
 
-  function handleSubmit() {
-    if (!title.trim()) {
-      setTitleError("Oops! You can't create a board without a title.");
-      titleInputRef.current?.focus();
-      return;
-    }
-    onCreate(title.trim(), description.trim());
-    onClose();
-  }
-
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === overlayRef.current) onClose();
   }
@@ -71,7 +81,7 @@ export default function CreateBoardModal({ onClose, onCreate }: CreateBoardModal
       aria-modal="true"
       aria-labelledby="create-board-modal-title"
       onClick={handleOverlayClick}
-      onKeyDown={trapFocus}
+      onKeyDown={handleKeyDown}
     >
       <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl">
         <h2 id="create-board-modal-title" className="text-base font-semibold mb-4">

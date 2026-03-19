@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, KeyboardEventHandler } from "react";
 
 type BoardInputProps = {
   id: string;
@@ -7,10 +7,11 @@ type BoardInputProps = {
   onChange: (newValue: string) => void;
   placeholder?: string;
   error?: string;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>; // now works
 };
 
 const BoardInputField = forwardRef<HTMLInputElement, BoardInputProps>(
-  function BoardInputField({ id, label, value, onChange, placeholder, error }, ref) {
+  function BoardInputField({ id, label, value, onChange, placeholder, error, onKeyDown }, ref) {
     const errorId = error ? `${id}-error` : undefined;
 
     return (
@@ -29,6 +30,7 @@ const BoardInputField = forwardRef<HTMLInputElement, BoardInputProps>(
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onKeyDown={onKeyDown}
           placeholder={placeholder}
           aria-describedby={errorId}
           aria-invalid={!!error}
