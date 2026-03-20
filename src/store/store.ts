@@ -52,6 +52,7 @@ const persistStorage = createJSONStorage<PersistedState>(() => localStorage, {
     return value;
   },
 });
+
 export const useStore = create<StoreState>()(
   devtools(
     persist(
@@ -72,15 +73,16 @@ export const useStore = create<StoreState>()(
           (partial, _replace, action) => set(partial, false, action ?? "column"),
           () => get()
         ),
-        // Card slice
-        ...createCardSlice(
-          (partial, _replace, action) => set(partial, false, action ?? "card"),
-          () => get()
-        ),
-        // History slice
+        // History slice - always position this before cardSlice so that pushHistory can be injected into it as a parameter
         ...createHistorySlice(
           (partial, _replace, action) => set(partial, false, action ?? "history"),
           () => get()
+        ),
+        // Card slice 
+        ...createCardSlice(
+          (partial, _replace, action) => set(partial, false, action ?? "card"),
+          () => get(),
+          (historyAction) => get().pushHistory(historyAction)
         ),
         // Comment slice
         ...createCommentSlice(

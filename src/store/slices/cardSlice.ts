@@ -5,13 +5,14 @@
 
 import type { PersistedState } from "@/store/types";
 import type { Card } from "@/types";
-import type { HistoryAction, HistorySlice } from "@/store/slices/historySlice";
+import type { HistoryAction } from "@/store/slices/historySlice";
 import { createCard, editCard, deleteCard, moveCard } from "@/store/actions/cardActions";
 import { isEmpty } from "@/lib/utils";
 
 export function createCardSlice(
-  set: (partial: Partial<PersistedState & HistorySlice>, replace?: boolean, action?: string) => void,
-  get: () => PersistedState & HistorySlice
+  set: (partial: Partial<PersistedState>, replace?: boolean, action?: string) => void,
+  get: () => PersistedState,
+  pushHistory: (action: HistoryAction) => void
 ) {
   return {
     createCard: (payload: {
@@ -41,7 +42,7 @@ export function createCardSlice(
           index: columnCards.length - 1,
         },
       };
-      nextState.pushHistory(action);
+      pushHistory(action);
     },
 
     editCard: (payload: {
@@ -67,7 +68,7 @@ export function createCardSlice(
           index: safeIndex,
         },
       };
-      state.pushHistory(action);
+      pushHistory(action);
     },
 
     moveCard: (payload: {
@@ -97,7 +98,7 @@ export function createCardSlice(
           toIndex: payload.newIndex,
         },
       };
-      state.pushHistory(action);
+      pushHistory(action);
     },
   };
 }
