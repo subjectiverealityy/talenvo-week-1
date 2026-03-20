@@ -1,4 +1,4 @@
-# BoardList — Stage 2 Submission README
+# BoardList — Stage 2 Submission to Talenvo Global Residency
 ## Architecture, Engineering Decisions, and Performance Strategy
 
 ---
@@ -9,68 +9,68 @@
 talenvo-stage-1/
 ├── src/
 │   ├── app/                          # Next.js App Router pages and layouts
-│   │   ├── (public-auth-route)/       # Public routes: /login, /signup
+│   │   ├── (public-auth-route)/      # Public routes: /login, /signup
 │   │   │   ├── login/
 │   │   │   └── signup/
-│   │   ├── (protected-entry-route)/   # Requires auth before accessing
-│   │   │   └── board-list/           # Dashboard: list all boards
-│   │   ├── (protected-workspace-route)/ 
-│   │   │   └── board/[boardId]/      # Dynamic route: specific board with columns/cards
+│   │   ├── (protected-entry-route)/  # Will require auth before accessing
+│   │   │   └── board-list/           # Dashboard: lists all boards
+│   │   ├── (protected-board-route)/ 
+│   │   │   └── board/[boardId]/      # Dynamic route: specific board with columns and cards
 │   │   ├── api/                      # Server-side API routes
 │   │   │   └── pusher/               # WebSocket infrastructure: broadcasts real-time events
-│   │   ├── hooks/                    # Custom hooks (NOT React hooks, custom patterns)
+│   │   ├── hooks/                    # Custom hooks 
 │   │   │   └── useWebSocket.ts       # Real-time subscription and broadcast logic
 │   │   ├── layout.tsx                # Root layout
-│   │   ├── page.tsx                  # Root page (/)
+│   │   ├── page.tsx                  # Root page 
 │   │   └── styles/                   # Global styles
 │   │
 │   ├── components/                   # Reusable React components (no logic, just rendering)
-│   │   ├── board/                    # Board-level components
-│   │   │   ├── BoardCard.tsx         # Display single board (list view)
-│   │   │   ├── BoardInputField.tsx   # Input for board title/description
-│   │   │   ├── BoardList.tsx         # Grid of all boards
+│   │   ├── board/                    
+│   │   │   ├── BoardCard.tsx         # A single board 
+│   │   │   ├── BoardInputField.tsx   # Input for board title and description
+│   │   │   ├── BoardList.tsx         # All boards
 │   │   │   ├── CreateBoardComponent.tsx
 │   │   │   └── CreateBoardModal.tsx
-│   │   ├── column/                   # Column-level components
-│   │   │   ├── Column.tsx            # Wrapper for DnD context
-│   │   │   ├── ColumnCard.tsx        # Display single column
-│   │   │   ├── ColumnModal.tsx       # Edit column name
+│   │   ├── column/                   
+│   │   │   ├── Column.tsx          
+│   │   │   ├── ColumnCard.tsx        
+│   │   │   ├── ColumnModal.tsx       
 │   │   │   └── CreateColumnComponent.tsx
-│   │   ├── card/                     # Card-level components
-│   │   │   ├── Card.tsx              # Wrapper for card rendering
-│   │   │   ├── CardItem.tsx          # Individual card in sortable list (with dnd-kit)
-│   │   │   ├── CardModal.tsx         # Open card modal (edit title, description, tags, date)
-│   │   │   │                         # Also renders: CommentSection, unsaved changes prompt
-│   │   │   ├── ExpandedCard.tsx      # Full card view with all fields
-│   │   │   └── CommentSection.tsx    # Threaded comments (2+ levels deep)
-│   │   └── ui/                       # Design system: reusable primitives
-│   │       ├── Button.tsx            # Tailwind-styled button
-│   │       ├── Input.tsx             # Tailwind-styled input
-│   │       ├── Modal.tsx             # Modal wrapper with focus trap
-│   │       ├── Badge.tsx             # Tag display
-│   │       ├── Toast.tsx             # Success/error notifications
-│   │       ├── ConfirmDeleteModal.tsx # Confirmation before delete
-│   │       ├── AuthorModal.tsx       # Prompt for user name (replaces window.prompt)
-│   │       └── ErrorBoundary.tsx     # Catches render errors with recovery
+│   │   ├── card/                     
+│   │   │   ├── Card.tsx             
+│   │   │   ├── CardItem.tsx          # Individual card
+│   │   │   ├── CardModal.tsx         # Full card view with all fields
+│   │   │   │                       
+│   │   │   ├── ExpandedCard.tsx      
+│   │   │   └── CommentSection.tsx    # Renders threaded comments (two levels deep)
+│   │   └── ui/                       
+│   │       ├── Button.tsx            
+│   │       ├── Input.tsx             
+│   │       ├── Modal.tsx             
+│   │       ├── Badge.tsx             
+│   │       ├── Toast.tsx             
+│   │       ├── ConfirmDeleteModal.tsx 
+│   │       ├── AuthorModal.tsx       # Prompt for user name when attempting to make first comment
+│   │       └── ErrorBoundary.tsx     # Catches render errors 
 │   │
 │   ├── context/                      # React context providers
 │   │   └── ToastContext.tsx          # Global toast notification context
 │   │
 │   ├── lib/                          # Pure utility functions
-│   │   ├── markdown.ts               # Markdown parser (bold, italics)
+│   │   ├── markdown.ts               # Markdown parser (bold and italics)
 │   │   ├── mockApi.ts                # Mock API abstraction for persistence
 │   │   ├── useAuthor.ts              # Hook for managing comment author name
 │   │   └── utils.ts                  # General utilities (isEmpty, clampIndex, etc.)
 │   │
 │   ├── store/                        # Zustand state management + slices
 │   │   ├── store.ts                  # Assembly point: combines all slices
-│   │   ├── types.ts                  # Store-specific types (PersistedState, RealtimeEvent)
-│   │   ├── actions/                  # Pure action functions (state in, delta out)
+│   │   ├── types.ts                  # Store-specific types 
+│   │   ├── actions/                  # Pure action functions 
 │   │   │   ├── boardActions.ts       # createBoard, editBoard, deleteBoard
 │   │   │   ├── columnActions.ts      # createColumn, editColumn, deleteColumn
 │   │   │   ├── cardActions.ts        # createCard, editCard, deleteCard, moveCard
 │   │   │   └── commentActions.ts     # createComment, editComment, deleteComment
-│   │   └── slices/                   # Zustand wiring layer (connect actions to store)
+│   │   └── slices/                   # Zustand wiring layer (connects actions to store)
 │   │       ├── boardSlice.ts         # Exposes: createBoard, editBoard, deleteBoard
 │   │       ├── columnSlice.ts        # Exposes: createColumn, editColumn, deleteColumn
 │   │       ├── cardSlice.ts          # Exposes: createCard, editCard, deleteCard, moveCard
@@ -80,46 +80,34 @@ talenvo-stage-1/
 │   ├── types/                        # Domain types (shared across the app)
 │   │   └── index.ts                  # Board, Column, Card, Comment, User types
 │   │
-│   └── __tests__/                    # Test suite
+│   └── __tests__/                    # Tests
 │       ├── unit/                     # Unit tests for pure functions
-│       │   ├── dragDrop.test.ts      # `moveCard()` logic
-│       │   ├── undoRedo.test.ts      # `undo()` and `redo()` logic
-│       │   ├── comments.test.ts      # Comment operations
-│       │   ├── boardActions.test.ts  # Board operations
-│       │   ├── cardActions.test.ts   # Card operations
-│       │   ├── columnActions.test.ts # Column operations
-│       │   └── parseMarkdown.test.ts # Markdown parser
+│       │   ├── dragDrop.test.ts      
+│       │   ├── undoRedo.test.ts      
+│       │   ├── comments.test.ts      
+│       │   ├── boardActions.test.ts  
+│       │   ├── cardActions.test.ts   
+│       │   ├── columnActions.test.ts 
+│       │   └── parseMarkdown.test.ts
 │       └── integration/              # Integration tests
-│           └── board.test.ts         # Full board workflow (create board → columns → cards → move)
+│           └── board.test.ts         # Tests full board workflow 
 │
 ├── docs/                             # Documentation
-│   ├── architecture.md               # Architecture evolution (Stage 1 → Stage 2)
-│   ├── tradeoff-analysis.md          # DnD tradeoff: custom vs dnd-kit
+│   ├── architecture.md              
+│   ├── tradeoff-analysis.md          # custom Dnd vs library
 │   ├── performance-benchmarking-notes.md # React DevTools profiling results
-│   └── readme1.md                    # This file: engineering decisions & structure
+│   └── readme1.md                    
 │
-├── public/                           # Static assets
-├── assets/                           # Screenshots, diagrams
-├── package.json                      # Dependencies
-├── tsconfig.json                     # TypeScript configuration (strict mode)
-├── next.config.ts                    # Next.js configuration
-├── vitest.config.ts                  # Vitest configuration
-├── tailwind.config.ts                # Tailwind CSS configuration
-└── README.md                         # Original Stage 1 README
+├── public/                        
+├── assets/                           
+├── package.json                   
+├── tsconfig.json                    
+├── next.config.ts                   
+├── vitest.config.ts                 
+├── tailwind.config.ts            
+└── README.md                       
 
 ```
-
-### Architectural Layers
-
-The folder structure reflects a **layered architecture**:
-
-1. **Domain Layer** (`src/types/`) — What the app manages (Board, Column, Card, Comment)
-2. **Store Layer** (`src/store/`) — How data is organized for efficiency (normalized state, ordering maps)
-3. **Infrastructure Layer** (`src/app/hooks/`, `src/lib/`) — Transport (Pusher), persistence (mockApi)
-4. **Component Layer** (`src/components/`) — How data is presented (React components)
-5. **Test Layer** (`src/__tests__/`) — Verification of domain logic (unit + integration)
-
-Changes flow downward (Domain → Store → Infrastructure → Components), but not upward. Components never know about the store's internal structure; they call methods on the store that are transport-agnostic.
 
 ---
 
@@ -227,9 +215,9 @@ Changes flow downward (Domain → Store → Infrastructure → Components), but 
 }
 ```
 
-### Why Normalized?
+### Why Normalized State?
 
-❌ **Nested (anti-pattern):**
+❌ **Nested Shape Example:**
 ```typescript
 boards: [
   {
@@ -248,9 +236,9 @@ boards: [
 - Editing a deeply nested card requires cloning the entire path (board → column → card)
 - Searching for a card by ID requires traversal
 - Rendering deeply nested arrays is inefficient
-- History/undo is expensive (capture entire nested tree)
+- History/undo is expensive (the entire nested tree has to be captured)
 
-✅ **Normalized (chosen):**
+✅ **Normalized State (chosen):**
 ```typescript
 {
   boardsById: { "board1": {...} },
@@ -265,8 +253,6 @@ boards: [
 - Searching by ID: direct access
 - History/undo: capture card object once, not entire tree
 - Rendering: iterate ordering maps independently
-
-This shape is used by Redux, Relay, and Normalizr — the industry standard for scalable state.
 
 ---
 
@@ -353,7 +339,7 @@ const handleCreateCard = useCallback((payload) => {
 
 **Why not implemented:** dnd-kit requires all sortable items mounted in the DOM to calculate drag positions. Virtualizing unmounts items outside viewport → collision detection breaks.
 
-**Future solution:** `pragmatic-drag-and-drop` by Atlassian (used in production Jira) is designed for virtualized lists.
+**Future solution:** `pragmatic-drag-and-drop` by Atlassian is a DnD library that is designed for virtualized lists.
 
 ---
 
@@ -396,7 +382,7 @@ const useStore = create<StoreState>()(
 );
 ```
 
-**Benefit:** WebSocket listeners can now call `useStore.getState()` outside of React components — enabling real-time updates anywhere.
+**Benefit:** WebSocket listeners can now call `useStore.getState()` outside of React components - enabling real-time updates anywhere.
 
 ---
 
@@ -518,12 +504,11 @@ future: [
 
 **Question:** What happens if two users edit the same card simultaneously?
 
-**Decision:** Last-write-wins (most recent event is applied)
+**Decision:** Last-write-wins (the most recent event is applied)
 
 **Why:**
 - Simplest strategy for client-side store (no conflict tracking)
-- Acceptable for Kanban where collisions are rare
-- Honest tradeoff: documented this limitation
+- Acceptable for a Kanban board-style application where collisions are rare
 
 **Code:**
 ```typescript
@@ -535,13 +520,14 @@ future: [
 // Result: potential inconsistency (but documented)
 ```
 
-**Production upgrade path:** CRDTs (Yjs) for automatic conflict resolution.
+**Upgrade path:** CRDTs (Yjs) for automatic conflict resolution.
+
 
 ---
 
 ### Decision 6: skipHistory Flag for Remote Events
 
-**Problem that emerged:** When User B's move arrives on User A's screen, `pushHistory()` was called, letting User A undo User B's action — wrong.
+**Problem that emerged:** When User B's move arrives on User A's screen, `pushHistory()` was called, letting User A undo User B's action.
 
 **Solution:** Add `skipHistory?: boolean` flag
 
@@ -572,8 +558,6 @@ store.createCard({ columnId, title, skipHistory: true });
 - Event cleanup (prevent memory leaks)
 - Cross-column dragging logic
 - Auto-scroll on edges
-
-**Effort:** 3-4 weeks
 
 **dnd-kit provides:**
 - All of the above out of the box
@@ -621,7 +605,7 @@ export function createCardSlice(set, get) {
   return {
     createCard: (payload) => {
       const updates = createCard(get(), payload);
-      set(updates);
+      set(updates, false, "card/createCard");
       get().pushHistory({...});
     }
   };
@@ -638,8 +622,6 @@ export const useStore = create((set, get) => ({
 
 ### Decision 9: localStorage + Pusher (Not Database)
 
-**Stage 2 constraint:** No server-side database required (Stage 3 concern)
-
 **Current approach:**
 - localStorage as single-source-of-truth per browser
 - Pusher broadcasts *changes* across browsers
@@ -647,12 +629,10 @@ export const useStore = create((set, get) => ({
 
 **Limitation:** Different users on different computers start with different initial data
 
-**Stage 3 upgrade:** Replace localStorage with Supabase
+**Upgrade path:** Replace localStorage with Supabase (database upgrade)
 - All users load same initial state from server
 - Pusher still broadcasts changes
 - Single source of truth across all clients
-
-**Decision:** Accept localStorage limitation for Stage 2, explicitly planning database upgrade for Stage 3
 
 ---
 
@@ -666,7 +646,7 @@ This architecture is built on five core principles:
 4. **Transparent Tradeoffs** — Last-write-wins documented, dnd-kit analysis published, tech debt listed
 5. **Scalability by Design** — Each Stage 2 feature added without rewriting foundation
 
-These decisions enable the system to scale from Stage 1 (basic CRUD) to Stage 2 (real-time collaboration) to Stage 3 (10,000 users) with clear upgrade paths, not rewrites.
+These decisions enable the system to scale from Stage 1 (basic CRUD) to Stage 2 (real-time collaboration) and beyond (10,000 users) with clear upgrade paths, not rewrites.
 
 ---
 
@@ -679,12 +659,11 @@ These decisions enable the system to scale from Stage 1 (basic CRUD) to Stage 2 
 
 ---
 
-## References
+## Reference Files
 
-- [Full Architecture Evolution Document](./architecture.md)
-- [Drag & Drop Tradeoff Analysis](./tradeoff-analysis.md)
-- [Performance Benchmarking Notes](./performance-benchmarking-notes.md)
-- [Tech Stack](#tech-stack) in main README.md
+- docs/architecture-evolution.md
+- docs/tradeoff-analysis.md
+- docs\performance-benchmarking-notes.md (also included here, as per the requirement, 'Include performance notes in README.')
 
 # Performance Benchmarking Notes
 
