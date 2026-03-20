@@ -1,6 +1,7 @@
-"use client";
+"use client"; //cccjtooppppp
 
 import { useState, useRef, memo } from "react";
+import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useShallow } from "zustand/shallow";
 import type { Column } from "@/types";
@@ -66,9 +67,14 @@ export default memo(function ColumnCard({
     setIsAddingCard(false);
   };
 
+  const { setNodeRef: setColumnRef } = useDroppable({
+    id: `column-${column.id}`,
+    data: { type: "column", columnId: column.id },
+  });
+
   return (
     <section
-      className="bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3 max-h-full overflow-y-auto"
+      className="bg-gray-100 border border-gray-200 rounded-lg p-4 w-64 min-w-[18rem] shrink-0 flex flex-col gap-3"
       aria-label={`Column: ${column.title}`}
     >
       <header className="flex items-center justify-between gap-2">
@@ -156,6 +162,7 @@ export default memo(function ColumnCard({
         </>
       ) : (
         <button
+          ref={setColumnRef} 
           onClick={handleAddCardClick}
           className="w-full border-2 border-dashed border-gray-300 rounded-lg py-2 text-sm text-gray-400 hover:border-gray-400 hover:text-gray-600 transition-colors"
           aria-label={`Add a card to ${column.title}`}

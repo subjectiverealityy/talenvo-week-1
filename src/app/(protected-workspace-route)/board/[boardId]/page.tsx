@@ -187,25 +187,46 @@ export default function BoardPage() {
     let newIndex = 0;
 
     const overData = over.data.current as { type?: string; columnId?: string } | undefined;
-    destinationColumnId = overData?.columnId ?? sourceColumnId;
-    const destinationCards = columnCardMap[destinationColumnId] ?? [];
-    const overIndex = destinationCards.indexOf(over.id as string);
 
-    // If overIndex is -1, the drop target wasn't a recognised card in this column
-    // (e.g. dropped into a new column but not directly over a card) — append to end.
-    if (overIndex === -1) {
-      newIndex = destinationCards.length;
+    if (overData?.type === "column") {
+      // If dropped directly on column background, append to end
+      destinationColumnId = overData.columnId ?? sourceColumnId;
+      newIndex = (useStore.getState().columnCardMap[destinationColumnId] ?? []).length;
     } else {
-      newIndex = overIndex;
-      if (sourceColumnId === destinationColumnId) {
-        const activeIndex = destinationCards.indexOf(activeId);
-        if (activeIndex !== -1 && activeIndex < newIndex) {
-          newIndex -= 1;
+      // If dropped on a card, use existing logic
+      destinationColumnId = overData?.columnId ?? sourceColumnId;
+      const destinationCards = useStore.getState().columnCardMap[destinationColumnId] ?? [];
+      const overIndex = destinationCards.indexOf(over.id as string);
+      if (overIndex === -1) {
+        newIndex = destinationCards.length;
+      } else {
+        // Check if the pointer is in the bottom half of the over element
+        const overRect = event.over?.rect;
+        const pointerY = event.activatorEvent instanceof PointerEvent || event.activatorEvent instanceof MouseEvent
+          ? event.activatorEvent.clientY + (event.delta.y)
+          : null;
+
+        const isBottomHalf = overRect && pointerY
+          ? pointerY > overRect.top + overRect.height / 2
+          : false;
+
+        const isLastCard = overIndex === destinationCards.length - 1;
+
+        if (isLastCard && isBottomHalf) {
+          newIndex = destinationCards.length;
+        } else {
+          newIndex = overIndex;
+          if (sourceColumnId === destinationColumnId) {
+            const activeIndex = destinationCards.indexOf(activeId);
+            if (activeIndex !== -1 && activeIndex < newIndex) {
+              newIndex -= 1;
+            }
+          }
         }
       }
     }
 
-    const sourceCards = columnCardMap[sourceColumnId] ?? [];
+    const sourceCards = useStore.getState().columnCardMap[sourceColumnId] ?? [];
     const currentIndex = sourceCards.indexOf(activeId);
     if (sourceColumnId === destinationColumnId && currentIndex === newIndex) {
       setActiveDragCardId(null);
