@@ -3,7 +3,7 @@
 import { useState, useCallback, memo } from "react";
 import { useShallow } from "zustand/shallow";
 import { useStore } from "@/store/store";
-import { useAuthor } from "@/lib/useAuthor";
+import { useAuthor } from "@/app/hooks/useAuthor";
 import AuthorModal from "@/components/ui/AuthorModal";
 import ConfirmDeleteModal from "@/components/ui/ConfirmDeleteModal";
 import { broadcast } from "@/app/hooks/useWebSocket";

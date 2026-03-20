@@ -6,7 +6,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useShallow } from "zustand/shallow";
 import type { Column } from "@/types";
 import { useStore } from "@/store/store";
-import CardItem from "@/components/card/CardItem";
+import CardItem from "@/components/card/CardCard";
 
 type ColumnCardProps = {
   column: Column;

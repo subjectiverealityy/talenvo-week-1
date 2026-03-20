@@ -9,13 +9,13 @@
 talenvo-stage-1/
 ├── src/
 │   ├── app/                          # Next.js App Router pages and layouts
-│   │   ├── (public-auth-route)/      # Public routes: /login, /signup
+│   │   ├── (public-auth-routes)/      # Public Auth Routes
 │   │   │   ├── login/
 │   │   │   └── signup/
-│   │   ├── (protected-entry-route)/  # Will require auth before accessing
-│   │   │   └── board-list/           # Dashboard: lists all boards
-│   │   ├── (protected-board-route)/ 
-│   │   │   └── board/[boardId]/      # Dynamic route: specific board with columns and cards
+│   │   ├── (protected-entry-route)/  # Protected Entry Route
+│   │   │   └── board-list/           # A page that lists all created boards
+│   │   ├── (protected-board-route)/  # Protected Dynamic Board Route
+│   │   │   └── board/[boardId]/      # A page that renders a board with all its columns and cards
 │   │   ├── api/                      # Server-side API routes
 │   │   │   └── pusher/               # WebSocket infrastructure: broadcasts real-time events
 │   │   ├── hooks/                    # Custom hooks 
@@ -24,24 +24,17 @@ talenvo-stage-1/
 │   │   ├── page.tsx                  # Root page 
 │   │   └── styles/                   # Global styles
 │   │
-│   ├── components/                   # Reusable React components (no logic, just rendering)
+│   ├── components/                   # Reusable React components (for rendering only)
 │   │   ├── board/                    
-│   │   │   ├── BoardCard.tsx         # A single board 
-│   │   │   ├── BoardInputField.tsx   # Input for board title and description
-│   │   │   ├── BoardList.tsx         # All boards
-│   │   │   ├── CreateBoardComponent.tsx
+│   │   │   ├── BoardCard.tsx         # Minimal representation of the board in a card - rendered in the entry route' list of boards
+│   │   │   ├── BoardInputField.tsx  
 │   │   │   └── CreateBoardModal.tsx
 │   │   ├── column/                   
-│   │   │   ├── Column.tsx          
 │   │   │   ├── ColumnCard.tsx        
 │   │   │   ├── ColumnModal.tsx       
-│   │   │   └── CreateColumnComponent.tsx
 │   │   ├── card/                     
-│   │   │   ├── Card.tsx             
-│   │   │   ├── CardItem.tsx          # Individual card
-│   │   │   ├── CardModal.tsx         # Full card view with all fields
-│   │   │   │                       
-│   │   │   ├── ExpandedCard.tsx      
+│   │   │   ├── CardCard.tsx          
+│   │   │   ├── CardModal.tsx         # Expanded card view with all its fields
 │   │   │   └── CommentSection.tsx    # Renders threaded comments (two levels deep)
 │   │   └── ui/                       
 │   │       ├── Button.tsx            
@@ -50,27 +43,27 @@ talenvo-stage-1/
 │   │       ├── Badge.tsx             
 │   │       ├── Toast.tsx             
 │   │       ├── ConfirmDeleteModal.tsx 
-│   │       ├── AuthorModal.tsx       # Prompt for user name when attempting to make first comment
+│   │       ├── AuthorModal.tsx       # Prompt user for a name when they attempt to make their first comment
 │   │       └── ErrorBoundary.tsx     # Catches render errors 
 │   │
 │   ├── context/                      # React context providers
 │   │   └── ToastContext.tsx          # Global toast notification context
 │   │
 │   ├── lib/                          # Pure utility functions
-│   │   ├── markdown.ts               # Markdown parser (bold and italics)
-│   │   ├── mockApi.ts                # Mock API abstraction for persistence
+│   │   ├── markdown.ts               
+│   │   ├── mockApi.ts                
 │   │   ├── useAuthor.ts              # Hook for managing comment author name
-│   │   └── utils.ts                  # General utilities (isEmpty, clampIndex, etc.)
+│   │   └── utils.ts                  # Utility functions
 │   │
 │   ├── store/                        # Zustand state management + slices
-│   │   ├── store.ts                  # Assembly point: combines all slices
+│   │   ├── store.ts                  # Assembly point - combines all slices
 │   │   ├── types.ts                  # Store-specific types 
 │   │   ├── actions/                  # Pure action functions 
 │   │   │   ├── boardActions.ts       # createBoard, editBoard, deleteBoard
 │   │   │   ├── columnActions.ts      # createColumn, editColumn, deleteColumn
 │   │   │   ├── cardActions.ts        # createCard, editCard, deleteCard, moveCard
 │   │   │   └── commentActions.ts     # createComment, editComment, deleteComment
-│   │   └── slices/                   # Zustand wiring layer (connects actions to store)
+│   │   └── slices/                   # Zustand wiring layer (connects and exposes actions to the store)
 │   │       ├── boardSlice.ts         # Exposes: createBoard, editBoard, deleteBoard
 │   │       ├── columnSlice.ts        # Exposes: createColumn, editColumn, deleteColumn
 │   │       ├── cardSlice.ts          # Exposes: createCard, editCard, deleteCard, moveCard
@@ -89,12 +82,12 @@ talenvo-stage-1/
 │       │   ├── cardActions.test.ts   
 │       │   ├── columnActions.test.ts 
 │       │   └── parseMarkdown.test.ts
-│       └── integration/              # Integration tests
+│       └── integration/              # Integration test
 │           └── board.test.ts         # Tests full board workflow 
 │
-├── docs/                             # Documentation
+├── docs/                                 # Documentation
 │   ├── architecture.md              
-│   ├── tradeoff-analysis.md          # custom Dnd vs library
+│   ├── tradeoff-analysis.md              # custom Dnd vs library
 │   ├── performance-benchmarking-notes.md # React DevTools profiling results
 │   └── readme1.md                    
 │
@@ -118,7 +111,7 @@ talenvo-stage-1/
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        USER INTERACTION                             │
-│   (Click "Create Card" button, drag card, submit comment)          │
+│       (Click "Create Card" button, drag card, submit comment)       │
 └────────────────────────┬────────────────────────────────────────────┘
                          │
                          ▼
@@ -315,35 +308,7 @@ const handleCreateCard = useCallback((payload) => {
 
 **Effect:** Dragging 200+ cards remains smooth.
 
-### Performance Testing
-
-**Test setup:** 21 columns × 10 cards = 210 cards (seeded using `seedTestData()` utility)
-
-**Results (measured with React DevTools Profiler):**
-
-| Operation | Components Re-rendered | Commit Time |
-|-----------|----------------------|-------------|
-| Initial mount | 231 (all) | ~45ms |
-| Edit one card | 2 (CardItem + CardModal) | <2ms |
-| Move one card (drag end) | 2 ColumnCards + 1 BoardPage | <5ms |
-| Add comment | CommentSection + CommentItem | ~9ms |
-| Delete a card | ColumnCard | <3ms |
-
-**Conclusion:** At 200+ cards, the app remains responsive. No frame drops below 60 FPS.
-
-### Known Bottleneck & Mitigation Path
-
-**Bottleneck:** Without list virtualization, rendering 500+ cards simultaneously would degrade.
-
-**Mitigation:** `@tanstack/react-virtual` can reduce DOM nodes to only visible cards.
-
-**Why not implemented:** dnd-kit requires all sortable items mounted in the DOM to calculate drag positions. Virtualizing unmounts items outside viewport → collision detection breaks.
-
-**Future solution:** `pragmatic-drag-and-drop` by Atlassian is a DnD library that is designed for virtualized lists.
-
----
-
-## 4. Explanation of Key Engineering Decisions
+## 4. Key Engineering Decisions
 
 ### Decision 1: Zustand Over useReducer + Context
 
@@ -665,6 +630,8 @@ These decisions enable the system to scale from Stage 1 (basic CRUD) to Stage 2 
 - docs/tradeoff-analysis.md
 - docs\performance-benchmarking-notes.md (also included here, as per the requirement, 'Include performance notes in README.')
 
+---
+
 # Performance Benchmarking Notes
 
 ## Stage 2 Requirement
@@ -672,13 +639,13 @@ These decisions enable the system to scale from Stage 1 (basic CRUD) to Stage 2 
 
 ## Setup
 
-**Test environment:** Chrome, React DevTools Profiler  
-**Test data:** 21 columns × 10 cards = 210 cards, seeded using the dev-only `seedTestData` utility in the board page  
+**Test environment:** Microsoft Edge, React DevTools Profiler  
+**Test start point:** 21 columns × 10 cards = 210 cards, seeded using the dev-only `seedTestData` utility in the board page  
 **Profiling tool:** React DevTools Profiler (Flamegraph and Ranked views)
 
 ---
 
-## Re-render Behaviour Under Mutation
+## Re-render Behaviour Under Mutation (results measured with React DevTools Profiler)
 
 With `memo()` on `CardItem` and `ColumnCard`, and `useShallow` on multi-value Zustand selectors, only the affected components re-render. The `✨` symbol in React DevTools confirms `memo()` is active and working on all key components.
 
@@ -690,6 +657,8 @@ With `memo()` on `CardItem` and `ColumnCard`, and `useShallow` on multi-value Zu
 | Single card interaction (move + toast) | `BoardPage`, `DndContext`, 2× `ColumnCard`, `ToastItem` | ~11ms |
 | Active drag (mid-gesture) | Multiple `ColumnCard` + `CardItem`, `AnimationManager` | ~35ms |
 | Drag end (card move finalised) | `BoardPage`, `DndContext`, multiple `ColumnCard` + `CardItem` | ~51–55ms |
+
+**Conclusion:** At 200+ cards, the app remains responsive. No frame drops below 60 FPS.
 
 ---
 
@@ -748,11 +717,11 @@ The primary performance bottleneck at higher card counts is having all DOM nodes
 
 **Why virtualisation was not implemented:**
 
-dnd-kit requires all sortable items to be mounted in the DOM to calculate drag positions during a gesture. Virtualising the list means items outside the viewport are unmounted, which breaks dnd-kit's collision detection entirely. This is a known, documented conflict between the two libraries.
+dnd-kit requires all sortable items to be mounted in the DOM to calculate drag positions during a gesture. Virtualising the list means items outside the viewport are unmounted, which breaks dnd-kit's collision detection. This is a known, documented conflict between the two libraries.
 
 **Threshold:** At 200+ cards, 20+ columns, and active comment threads (the Stage 2 Performance Stress Test responsiveness requirement), React handles all DOM nodes without measurable frame drops. The 35–55ms drag commits are driven by dnd-kit's position reconciliation logic, not DOM size. The bottleneck would become noticeable above ~50 cards per column.
 
-**Long-term solution:** `pragmatic-drag-and-drop` by Atlassian (used in production Jira) is specifically designed to work alongside virtualised lists. It would be the correct replacement if card counts grow to the point where virtualisation becomes necessary.
+**Long-term solution:** `pragmatic-drag-and-drop` by Atlassian (used in production Jira) is a DnD library that is specifically designed to work alongside virtualised lists. It would be the correct replacement if card counts grow to the point where virtualisation becomes necessary.
 
 ---
 
