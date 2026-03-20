@@ -71,12 +71,12 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
 
       <ul className="flex flex-col gap-4 mb-4" role="list">
         {topLevelIds.map((commentId) => (
-          <CommentThread
+          <CommentThreadWrapper
             key={commentId}
             commentId={commentId}
             currentAuthor={author}
-            onRequestDelete={(id) => setPendingDeleteId(id)}
-            onReply={(body) => handleSubmitComment(body, commentId)}
+            onRequestDelete={setPendingDeleteId}
+            onSubmitComment={handleSubmitComment}
           />
         ))}
       </ul>
@@ -118,6 +118,35 @@ export default function CommentSection({ cardId }: CommentSectionProps) {
     </section>
   );
 }
+
+// Comment Thread Wrapper - creates stable callback references per commentId so that CommentThread's memo does not re-render when CommentSection re-renders (i.e. when the delete modal opens or closes).
+type CommentThreadWrapperProps = {
+  commentId: string;
+  currentAuthor: string;
+  onRequestDelete: (id: string) => void;
+  onSubmitComment: (body: string, parentId: string | null) => void;
+};
+
+const CommentThreadWrapper = memo(function CommentThreadWrapper({
+  commentId,
+  currentAuthor,
+  onRequestDelete,
+  onSubmitComment,
+}: CommentThreadWrapperProps) {
+  const onReply = useCallback(
+    (body: string) => onSubmitComment(body, commentId),
+    [commentId, onSubmitComment]
+  );
+
+  return (
+    <CommentThread
+      commentId={commentId}
+      currentAuthor={currentAuthor}
+      onRequestDelete={onRequestDelete}
+      onReply={onReply}
+    />
+  );
+});
 
 // Comment Thread
 type CommentThreadProps = {
@@ -241,7 +270,7 @@ const ReplyItem = memo(function ReplyItem({
   );
 });
 
-// Comment Item 
+// Comment Item
 type CommentItemProps = {
   commentId: string;
   currentAuthor: string;
