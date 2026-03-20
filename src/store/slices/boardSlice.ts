@@ -7,20 +7,20 @@ import type { Board } from "@/types";
 import { createBoard, editBoard, deleteBoard } from "@/store/actions/boardActions";
 
 export function createBoardSlice(
-  set: (partial: Partial<PersistedState>) => void, 
+  set: (partial: Partial<PersistedState>, replace?: boolean, action?: string) => void,
   get: () => PersistedState 
 ) {
   return {
     // Zustand reads the current state using get(). It then passes the current state and payload into the pure action function so that it can read the state, run the function/perform the actions and return the new state updates. Then Zustand takes that returned partial state and merges it into the store using set() - its way of updating state.
 
     createBoard: (payload: { title: string; description: string }) =>
-      set(createBoard(get(), payload)), 
+      set(createBoard(get(), payload), false, "card/createCard"), 
 
     editBoard: (payload: { boardId: string; updates: Partial<Pick<Board, "title" | "description">> }) =>
-      set(editBoard(get(), payload)),
+      set(editBoard(get(), payload), false, "card/editCard"),
 
     deleteBoard: (payload: { boardId: string }) =>
-      set(deleteBoard(get(), payload)),
+      set(deleteBoard(get(), payload), false, "card/deleteCard"),
   };
 }
 

@@ -10,7 +10,7 @@ import { createCard, editCard, deleteCard, moveCard } from "@/store/actions/card
 import { isEmpty } from "@/lib/utils";
 
 export function createCardSlice(
-  set: (partial: Partial<PersistedState & HistorySlice>) => void,
+  set: (partial: Partial<PersistedState & HistorySlice>, replace?: boolean, action?: string) => void,
   get: () => PersistedState & HistorySlice
 ) {
   return {
@@ -26,7 +26,7 @@ export function createCardSlice(
     }) => {
       const updates = createCard(get(), payload);
       if (isEmpty(updates)) return;
-      set(updates);
+      set(updates, false, "card/createCard");
       if (payload.skipHistory) return;
       const nextState = get();
       const columnCards = nextState.columnCardMap[payload.columnId] ?? [];
@@ -47,7 +47,7 @@ export function createCardSlice(
     editCard: (payload: {
       cardId: string;
       updates: Partial<Omit<Card, "id" | "columnId">>;
-    }) => set(editCard(get(), payload)),
+    }) => set(editCard(get(), payload), false, "card/editCard"),
 
     deleteCard: (payload: { cardId: string }) => {
       const state = get();
@@ -58,7 +58,7 @@ export function createCardSlice(
       const safeIndex = index === -1 ? columnCards.length : index;
       const updates = deleteCard(state, payload);
       if (isEmpty(updates)) return;
-      set(updates);
+      set(updates, false, "card/deleteCard");
       const action: HistoryAction = {
         type: "DELETE_CARD",
         payload: {
@@ -85,7 +85,7 @@ export function createCardSlice(
       const fromIndex = fromColumnCards.indexOf(payload.cardId);
       const updates = moveCard(state, payload);
       if (isEmpty(updates)) return;
-      set(updates);
+      set(updates, false, "card/moveCard");
       if (payload.skipHistory) return;
       const action: HistoryAction = {
         type: "MOVE_CARD",

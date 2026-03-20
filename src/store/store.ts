@@ -64,17 +64,17 @@ export const useStore = create<StoreState>()(
           set({ activeCardId: id }, false, "setActiveCardId"),
         // Board slice
         ...createBoardSlice(
-          (partial) => set(partial, false, "board"),
+          (partial, _replace, action) => set(partial, false, action ?? "board"),
           () => get()
         ),
         // Column slice
         ...createColumnSlice(
-          (partial) => set(partial, false, "column"),
+          (partial, _replace, action) => set(partial, false, action ?? "column"),
           () => get()
         ),
         // Card slice
         ...createCardSlice(
-          (partial) => set(partial, false, "card"),
+          (partial, _replace, action) => set(partial, false, action ?? "card"),
           () => get()
         ),
         // History slice
@@ -84,7 +84,7 @@ export const useStore = create<StoreState>()(
         ),
         // Comment slice
         ...createCommentSlice(
-          (partial) => set(partial, false, "comment"),
+          (partial, _replace, action) => set(partial, false, action ?? "comment"),
           () => get()
         ),
       }),

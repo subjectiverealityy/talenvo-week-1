@@ -5,7 +5,7 @@ import type { PersistedState } from "@/store/types";
 import { createComment, editComment, deleteComment } from "@/store/actions/commentActions";
 
 export function createCommentSlice(
-  set: (partial: Partial<PersistedState>) => void,
+  set: (partial: Partial<PersistedState>, replace?: boolean, action?: string) => void,
   get: () => PersistedState
 ) {
   return {
@@ -15,13 +15,13 @@ export function createCommentSlice(
       parentId: string | null;
       author: string;
       body: string;
-    }) => set(createComment(get(), payload)),
+    }) => set(createComment(get(), payload), false, "comment/createComment"),
 
     editComment: (payload: { commentId: string; body: string }) =>
-      set(editComment(get(), payload)),
+      set(editComment(get(), payload), false, "comment/editComment"),
 
     deleteComment: (payload: { commentId: string }) =>
-      set(deleteComment(get(), payload)),
+      set(deleteComment(get(), payload), false, "comment/deleteComment"),
   };
 }
 

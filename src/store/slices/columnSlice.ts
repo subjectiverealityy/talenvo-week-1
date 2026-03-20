@@ -7,18 +7,18 @@ import type { PersistedState } from "@/store/types";
 import { createColumn, editColumn, deleteColumn } from "@/store/actions/columnActions";
 
 export function createColumnSlice(
-  set: (partial: Partial<PersistedState>) => void,
+  set: (partial: Partial<PersistedState>, replace?: boolean, action?: string) => void,
   get: () => PersistedState
 ) {
   return {
     createColumn: (payload: { id?: string; boardId: string; title: string }) =>
-      set(createColumn(get(), payload)),
+      set(createColumn(get(), payload), false, "column/createColumn"),
 
     editColumn: (payload: { columnId: string; title: string }) =>
-      set(editColumn(get(), payload)),
+      set(editColumn(get(), payload), false, "column/editColumn"),
 
     deleteColumn: (payload: { columnId: string }) =>
-      set(deleteColumn(get(), payload)),
+      set(deleteColumn(get(), payload), false, "column/deleteColumn"),
   };
 }
 
