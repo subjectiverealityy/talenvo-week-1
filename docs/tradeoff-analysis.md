@@ -1,11 +1,11 @@
-# Drag and Drop Tradeoff Analysis
-## Custom Implementation vs dnd-kit
+# Tradeoff Analysis
+## - custom DnD vs library
 
 ---
 
 ## The Decision
 
-I used **dnd-kit** (`@dnd-kit/core` + `@dnd-kit/sortable`) for the drag and drop system. The alternative was building a custom implementation from scratch using the browser's Pointer Events API.
+I used **dnd-kit** (`@dnd-kit/core` + `@dnd-kit/sortable`) for the drag and drop system. The alternative was building a custom DnD implementation from scratch using the browser's Pointer Events API.
 
 ---
 
@@ -32,7 +32,7 @@ A production-quality custom DnD implementation requires building the following f
 
 ### Cons
 
-- Implementation time could be significant - the items above are time-consuming and complex features where edge cases could compound
+- Manually implementing and testing each feature while accounting for edge cases, meeting accessibility standards, implementing touch support and other requirements would take significant amount of time to implement correctly
 
 
 ---
@@ -68,17 +68,17 @@ dnd-kit is a modular drag and drop toolkit used in production by Vercel, Linear,
 
 ## Decision
 
-A Kanban board is the exact use case that dnd-kit was designed for. For a project at this scale and timeline, I decided to go with dnd-kit over Custom DnD - building a custom implementation to production quality would take a significant amount of time. 
+A Kanban board-type application is the exact use case that dnd-kit was designed for. For a project at this scale and timeline, I chose dnd-kit over custom DnD because building a custom implementation to production quality would take a significant amount of time. 
 
-The trade offs:  
-**Custom DnD:** control and zero dependencies  
+The tradeoffs:  
+**Custom DnD:** more control and no dependencies  
 **dnd-kit:** time, reliability, and accessibility
 
 ---
 
 ## State Update Strategy
 
-Regardless of which DnD approach is used, the state update logic is the same:
+Regardless of which DnD approach is used, the state update logic remains the same:
 
 **On drag end - same column:**
 - Remove the card from its current index in `columnCardMap[columnId]`
@@ -99,6 +99,6 @@ Regardless of which DnD approach is used, the state update logic is the same:
 
 ## Future Consideration
 
-dnd-kit conflicts with list virtualisation because it requires all sortable items to be mounted in the DOM to calculate drag positions. I was unaware of this constraint before I selected dnd-kit for the Drag and Drop system.
+dnd-kit conflicts with list virtualisation because it requires all sortable items to be mounted in the DOM  in order to calculate drag positions. I was unaware of this constraint before selecting dnd-kit for the Drag and Drop system.
 
-If card counts grow to the point where list virtualisation becomes necessary, `pragmatic-drag-and-drop` by Atlassian (used in production Jira) will be used as a replacement. It is specifically designed to work alongside virtualised lists.
+After a certain threshold, it will be beneficial to implement list virtualisation into this project. `pragmatic-drag-and-drop` by Atlassian (used in production Jira) will be used as a replacement for `dnd-kit` because it is specifically designed to work alongside virtualised lists.
