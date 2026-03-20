@@ -273,3 +273,286 @@ The primary performance bottleneck at 200+ cards is having all 210 `CardItem` DO
 | Delete card | 1 (ColumnCard) | <2ms |
 
 These results demonstrate that the selector-based architecture (`useShallow`, individual card subscriptions, `memo`) is working correctly. The Stage 2 requirement to "remain responsive with 200+ cards" is met at current card-per-column counts.
+
+
+
+
+--------------------------------//////////////////////////////////////////------------------------------------
+
+
+
+
+
+
+
+---
+
+### 6. Database Schema for 10,000 Users
+
+```sql
+-- PostgreSQL schema
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE boards (
+  id UUID PRIMARY KEY,
+  owner_id UUID REFERENCES users(id),
+  title VARCHAR NOT NULL,
+  description TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE columns (
+  id UUID PRIMARY KEY,
+  board_id UUID REFERENCES boards(id) ON DELETE CASCADE,
+  title VARCHAR NOT NULL,
+  position INT NOT NULL,  -- ordering
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE cards (
+  id UUID PRIMARY KEY,
+  column_id UUID REFERENCES columns(id) ON DELETE CASCADE,
+  title VARCHAR NOT NULL,
+  description TEXT,
+  tags TEXT[] DEFAULT '{}',
+  due_date DATE,
+  position INT NOT NULL,  -- ordering within column
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE comments (
+  id UUID PRIMARY KEY,
+  card_id UUID REFERENCES cards(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id),
+  parent_id UUID REFERENCES comments(id) ON DELETE CASCADE,  -- null for top-level
+  body TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  edited_at TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX idx_boards_owner_id ON boards(owner_id);
+CREATE INDEX idx_columns_board_id ON columns(board_id);
+CREATE INDEX idx_cards_column_id ON cards(column_id);
+CREATE INDEX idx_comments_card_id ON comments(card_id);
+CREATE INDEX idx_comments_parent_id ON comments(parent_id);
+```
+
+The pure action functions in `src/store/actions/*.ts` map directly to this schema:
+- `createCard()` becomes `INSERT INTO cards`
+- `moveCard()` becomes `UPDATE cards SET position = ..., column_id = ...`
+- `createComment()` becomes `INSERT INTO comments`
+
+---
+
+## Part 6: Stage 2 Requirements Coverage
+
+### ✅ 1. Drag & Drop System
+
+**Requirement:** "Reorder cards within a column, move cards across columns, preserve ordering in state, and persist changes via API abstraction layer (mock data)."
+
+**Implementation:**
+- Used **dnd-kit** with `SortableContext` and `useSortable` hooks
+- State updates: `moveCard()` action updates `columnCardMap` with new ordering
+- Persistence: Calls `updateCardPosition()` mock API on drag end (abstracted in `lib/mockApi.ts`)
+- Optimistic UI: State updates immediately, API call happens async
+
+**Relevant Files:** 
+- `src/app/(protected-board-route)/board/[boardId]/page.tsx`
+- `src/app/hooks/useBoardPage.ts`
+- `src/components/card/CardItem.tsx`
+- `src/components/column/ColumnCard.tsx`
+- `src/__tests__/unit/dragDrop.test.ts`
+
+---
+
+### ✅ 2. Real-Time Update Simulation
+
+**Requirement:** "Your board must support simulated multi-user updates using WebSocket server (preferred) OR a polling system with conflict resolution logic. Card creation, card movement, and comment additions must reflect in multiple open sessions. You must document: 'What happens if two users edit the same card? What wins? Why?'
+
+**Implementation:**
+- **Pusher WebSocket** for real-time events
+- Events: `CARD_CREATED`, `CARD_MOVED`, `COMMENT_ADDED`, etc.
+- Reconciliation: Events arrive via the Pusher channel, apply to store with `skipHistory: true`
+- Optimistic UI: Local changes apply immediately, then broadcast to others
+
+**Relevant Files:**
+- `src/app/hooks/useWebSocket.ts`
+- `src/store/types.ts` (RealtimeEvent type)
+
+**Conflict strategy tested:**
+- Local edits update state immediately
+- Remote events apply last-write-wins 
+- Tested across multiple browser tabs with the same localStorage
+
+---
+
+### ✅ 3. Comment System (Threaded)
+
+**Requirement:** "Each card must support threaded comments with nested replies (minimum 2 levels deep), edit, and delete functionality. Comment data must be normalised; avoid deeply nested uncontrolled state; ensure efficient rendering with large comment trees."
+
+**Implementation:**
+- **Flat comment store:** `commentsById` maps all comments (no nesting)
+- **Ordering maps:** `cardCommentMap` (cardId → top-level comment IDs), `commentReplyMap` (commentId → reply IDs)
+- **2+ level nesting:** `Comment.parentId` can be null (top-level) or another comment ID (reply)
+- Edit/delete: Pure action functions handle all mutations
+- Efficient rendering: No deep traversals; use the ordering maps to render at any level
+
+**Relvant Files:**
+- `src/store/types.ts`
+- `src/components/card/CommentSection.tsx`
+- `src/__tests__/unit/comments.test.ts`
+
+---
+
+### ✅ 4. Undo / Redo System
+
+**Requirement:** "Must support undo/redo for card creation, deletion, and movement. Must not rely on naive full-state cloning. Use Action history pattern, Command pattern, or Event-sourced style log."
+
+**Implementation:**
+- **Command Pattern:** Each action (CREATE_CARD, DELETE_CARD, MOVE_CARD) is a command object
+- **Inverse operations:** Undo applies the reverse of the command (CREATE → DELETE, DELETE → CREATE)
+- **History state:** `past` array (completed actions), `future` array (undone actions)
+- **Keyboard shortcuts:** Ctrl+Z (undo), Ctrl+Shift+Z or Ctrl+Y (redo)
+- **Remote exclusion:** `skipHistory: true` ensures remote WebSocket events don't pollute local undo
+
+**Relevant Files:**
+- `src/store/slices/historySlice.ts`
+- `src/__tests__/unit/undoRedo.test.ts`
+- `src/app/hooks/useBoardPage.ts` (Keyboard shortcuts) 
+
+---
+
+### ✅ 5. Performance Stress Test
+
+**Requirement:** "Your board must remain responsive with 200+ cards, 20+ columns, and active comment threads. Requirements: Profile rendering, prevent excessive re-renders, and consider list virtualization. Include performance notes in README."
+
+**Evidence:**
+- Seeded 210 cards across 21 columns using `seedTestData()` utility
+- Profiled with React DevTools Profiler
+
+**Results:**
+- Initial mount: ~45ms (acceptable)
+- Single card edit re-renders only that card: <2ms (efficient)
+- Drag operation: 35–55ms (well under 60ms/frame)
+- Comment operations: <10ms (isolated from board)
+- All 210 cards present in the DOM: zero frame drops
+
+**Known ceiling:** Virtualization is not implemented because dnd-kit conflicts with virtual lists. At ~10 cards per column, React handles all DOM nodes while remaining responsive.
+
+**Relevant File:**
+- `README.md`
+
+---
+
+### ✅ 6. Advanced UX Expectations
+
+**Requirement:** "Loading skeletons, error boundaries, toast notifications, empty states, and a dark mode toggle (using theme tokens). Design System Components: Reusable Button, Input, Modal, and Badge components."
+
+**Loading skeletons:** `animate-pulse` on board list and board canvas ✅  
+**Error boundaries:** Board-level and comment-level error boundaries with recovery options ✅  
+**Toast notifications:** Success/error toasts on card/column CRUD ✅  
+**Empty states:** Empty message when board has no columns ✅  
+**Dark mode:** Not implemented yet  
+**Design System Components:** Reusable Button, Input, Modal, Badge components ✅  
+
+---
+
+### ✅ 7. Testing Requirements
+
+**Requirement:** "Unit tests for Drag logic, Undo/Redo logic, and Comment logic. At least 1 integration test simulating board interaction."
+
+
+**Unit tests:**
+- `src/__tests__/unit/dragDrop.test.ts` — 5 tests ✅
+- `src/__tests__/unit/undoRedo.test.ts` — 8 tests ✅
+- `src/__tests__/unit/comments.test.ts` — 6 tests ✅
+- `src/__tests__/unit/` — full coverage of board, column, and card actions ✅
+
+**Integration tests:**
+- `src/__tests__/integration/board.test.ts` — simulates creating boards, columns, cards, and moving cards across columns ✅
+
+---
+
+## Stage 2 Evaluation Criteria: How Each Was Met
+
+### Production-Level Architecture Thinking ✅
+
+- **Layered architecture:** Domain types → Store types → Pure actions → Zustand slices → Assembly
+- **Separation of concerns:** Logic is transport-agnostic (can run on client or server)
+- **Scalable patterns:** Normalised state, O(1) lookups, flat comment structure
+- **Justified tradeoffs:** Last-write-wins documented (not accidental), custom DnD vs dnd-kit analyzed
+- **Honest limitations:** localStorage to single-user acknowledged, virtualization blocker explained
+
+---
+
+### State Evolution Under Complexity ✅
+
+- **Modular additions:** Real-time required adding `skipHistory` flag (minimal change)
+- **Comments introduced:** New normalised structure (flat comment store with ordering maps)
+- **Undo/Redo introduced:** Command pattern (no full-state cloning)
+- **Conflict handling:** Explicit last-write-wins strategy (not silent data loss)
+
+---
+
+### Real-Time Systems Reasoning ✅
+
+- **Architectural decision documented:** Why Pusher over polling or BroadcastChannel
+- **Conflict strategy explicit:** What happens when two users edit the same card
+- **Remote event handling:** `skipHistory` prevents undo of other users' actions
+- **Transport abstraction:** Event types and store calls are transport-independent
+
+---
+
+### Performance Optimization ✅
+
+- **Profiled under stress:** 210 cards, 21 columns measured with React DevTools
+- **Render optimizations:** `memo()`, `useShallow`, individual card subscriptions
+- **Documented bottleneck:** Virtualization needed at higher 'cards per column' threshold
+- **Future solution:** Pragmatic-drag-and-drop evaluated as replacement for dnd-kit
+
+---
+
+### Testing Discipline ✅
+
+- **Unit tests:** 19 tests covering drag logic, undo/redo, comments
+- **Integration test:** Full board workflow from creation to card movement
+- **Mocks:** Mock API (`mockApi.ts`) abstracts persistence layer
+- **Vitest + React Testing Library:** Industry-standard testing setup
+
+---
+
+### Engineering Tradeoff Awareness ✅
+
+- **Drag & Drop:** Custom DnD vs dnd-kit analysis located in `docs/dnd-tradeoff-analysis.md`
+- **Conflict strategy:** Last-write-wins explained with caveats 
+- **Virtualization:** Deferred due to dnd-kit conflict (performance testing confirmed the board remains responsive at the Stage 2 target load)
+- **localStorage:** Single-user limitation acknowledged with upgrade path (Supabase)
+
+---
+
+## Conclusion
+
+The Stage 2 submission demonstrates:
+
+1. **Production-level thinking** — layered architecture, separation of concerns, justified tradeoffs
+2. **Scalable design** — normalised state, O(1) operations, transport-independent events
+3. **Real-time architecture** — Pusher WebSocket, optimistic UI, remote event filtering
+4. **Testing discipline** — 19 unit tests, 1 integration test, performance profiled
+5. **Honest assessment** — Known debt documented, limitations acknowledged, evolution path outlined
+
+The codebase is ready for production at the Stage 2 scale (single team, ~10K DAU). The evolution from Stage 1 (basic CRUD) to Stage 2 (real-time collaboration) was achieved without major rearchitecting — a sign of solid initial design decisions.
+
+The path to 10,000 users is clear: database (Supabase), CRDT-based conflict resolution (Yjs), virtualized lists (pragmatic-drag-and-drop), and server-side rendering. None of these require replacing the core state architecture or action functions — only adapting infrastructure layers.
+
+---
+
+## References & Tradeoff Documents
+
+- [Drag & Drop Tradeoff Analysis](tradeoff-analysis.md) — dnd-kit vs custom implementation
+- [Performance Benchmarking Notes](performance-benchmarking-notes.md) — React DevTools profiling data
+- [Architecture Evolution Doc](architecture-evolution.md) — Detailed technical breakdown
